@@ -27,10 +27,15 @@ async function remove(theme: Theme) {
   if (result && themeFilter.value === theme.id) await filterTheme('')
 }
 async function questions(id: string) { await filterTheme(id); emit('questions') }
+async function setDefaultTheme(event: Event) {
+  const themeId = (event.target as HTMLSelectElement).value
+  await mutate('themes/default', { themeId }, 'Thème par défaut enregistré.')
+}
 </script>
 <template>
   <section class="surface panel stack">
     <h2>Thèmes</h2><p class="subtle">Les flèches définissent l’ordre du bandeau du quiz. Modifier un identifiant met à jour les questions, géobattles et compteurs joueurs associés.</p>
+    <label class="field"><span class="field-label">Thème du quiz par défaut</span><select :value="data.defaultQuizThemeId" :disabled="busy || !data.themes.length" @change="setDefaultTheme"><option v-for="theme in data.themes" :key="theme.id" :value="theme.id">{{ theme.emoji }} {{ theme.name }}</option></select></label>
     <label class="field"><span class="field-label">Rechercher un thème</span><input v-model="search" type="search" placeholder="Nom, identifiant ou tag" /></label>
     <div class="table-wrap"><table class="table"><thead><tr><th>Bandeau</th><th>Thème</th><th>Identifiant / tags</th><th>Auteur</th><th>Actions</th></tr></thead><tbody><tr v-for="theme in themes" :key="theme.id"><td><div class="actions"><button type="button" class="icon-button sm" aria-label="Monter ce thème dans le bandeau" :disabled="busy || data.themes[0]?.id === theme.id" @click="move(theme.id, -1)">↑</button><button type="button" class="icon-button sm" aria-label="Descendre ce thème dans le bandeau" :disabled="busy || data.themes[data.themes.length - 1]?.id === theme.id" @click="move(theme.id, 1)">↓</button></div></td><td><strong>{{ theme.emoji }} {{ theme.name }}</strong><p class="subtle clamp">{{ theme.description }}</p></td><td><code>{{ theme.id }}</code><div class="badges"><span v-for="tag in theme.tags" :key="tag" class="badge neutral">{{ tag }}</span></div></td><td>{{ theme.authorPseudo || '—' }}</td><td><div class="actions"><button type="button" class="btn btn-sm btn-secondary" @click="open(theme)">Modifier</button><button type="button" class="btn btn-sm btn-ghost" @click="questions(theme.id)">Questions</button><button type="button" class="btn btn-sm btn-danger-ghost" :disabled="busy" @click="ask(`Supprimer le thème « ${theme.name} » et toutes ses questions ? Cette action est irréversible.`, () => remove(theme))">Supprimer</button></div></td></tr></tbody></table></div><p v-if="!themes.length" class="empty">Aucun thème correspondant.</p>
   </section>

@@ -5,6 +5,7 @@ import { BookOpen, LayoutGrid, MapPinned, RefreshCw, SquarePen, Swords, UserRoun
 import { app, isRegistered, refreshApp } from '$lib/appStore'
 import { asset } from '$lib/appUrl'
 import { initMatomo, trackPageView } from '$lib/matomo'
+import GoogleTranslateLangBar from './components/GoogleTranslateLangBar.vue'
 import {
   fixGoogleTranslateScrollLayout,
   installGoogleTranslateFloatUiSuppression,
@@ -126,21 +127,23 @@ onBeforeUnmount(() => {
       <div class="sidebar-links">
         <RouterLink to="/a-propos">À propos</RouterLink>
         <RouterLink to="/privacy">Confidentialité</RouterLink>
-        <RouterLink to="/admin">Admin</RouterLink>
       </div>
     </div>
   </aside>
 
   <div class="app-content">
     <header class="topbar">
-      <RouterLink to="/" class="mobile-brand brand">
-        <img :src="asset('icons/logo.png')" alt="" />
-        <span>Geo<span class="brand-accent">Pinpoint</span></span>
-      </RouterLink>
-      <div class="breadcrumb">
-        <span>GeoPinpoint</span>
-        <span aria-hidden="true">/</span>
-        <strong>{{ route.meta.title }}</strong>
+      <div class="topbar-left">
+        <RouterLink to="/" class="mobile-brand brand">
+          <img :src="asset('icons/logo.png')" alt="" />
+          <span>Geo<span class="brand-accent">Pinpoint</span></span>
+        </RouterLink>
+        <div class="breadcrumb">
+          <span>GeoPinpoint</span>
+          <span aria-hidden="true">/</span>
+          <strong>{{ route.meta.title }}</strong>
+        </div>
+        <GoogleTranslateLangBar compact />
       </div>
       <div class="topbar-right">
         <span class="xp-pill" title="Expérience cumulée"><Sparkles :size="14" aria-hidden="true" /> {{ xp.toLocaleString('fr-FR') }} XP</span>
@@ -166,7 +169,6 @@ onBeforeUnmount(() => {
       <span>© GeoPinpoint</span>
       <RouterLink to="/a-propos">À propos</RouterLink>
       <RouterLink to="/privacy">Confidentialité</RouterLink>
-      <RouterLink to="/admin">Administration</RouterLink>
     </footer>
   </div>
 

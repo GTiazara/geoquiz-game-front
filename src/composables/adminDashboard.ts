@@ -13,6 +13,7 @@ export type AdminBattle = {
 export type AdminDashboard = {
   users: AdminPlayerRow[]; themes: Theme[]; questions: AdminQuestionRow[]; themeFilter?: string
   geoBattles: AdminBattle[]; pendingNewQuestions: AdminQuestionRow[]; pendingEditProposals: QuestionEditProposalRow[]
+  defaultQuizThemeId: string
   communityMinNetVotes: number; communityEditProposalRemoveMinNetDown: number
 }
 type Confirmation = { description: string; action: () => Promise<unknown> }
@@ -21,7 +22,7 @@ export function createAdminDashboard() {
   const route = useRoute(), router = useRouter()
   const configured = ref(true), authed = ref(false), checking = ref(true), loading = ref(false), busy = ref(false)
   const error = ref(''), notice = ref('')
-  const data = ref<AdminDashboard>({ users: [], themes: [], questions: [], geoBattles: [], pendingNewQuestions: [], pendingEditProposals: [], communityMinNetVotes: 4, communityEditProposalRemoveMinNetDown: 5 })
+  const data = ref<AdminDashboard>({ users: [], themes: [], questions: [], geoBattles: [], pendingNewQuestions: [], pendingEditProposals: [], defaultQuizThemeId: '', communityMinNetVotes: 4, communityEditProposalRemoveMinNetDown: 5 })
   const confirmation = ref<Confirmation | null>(null)
   const battleResult = ref<{ battleId: string; shareUrl: string } | null>(null)
   const themeFilter = computed(() => typeof route.query.theme === 'string' ? route.query.theme.trim() : '')

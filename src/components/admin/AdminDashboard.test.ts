@@ -18,7 +18,7 @@ vi.mock('../AdminGeojsonPreview.vue', () => ({ default: { template: '<div />' } 
 vi.mock('../AdminThemeQuestionsMap.vue', () => ({ default: { template: '<div />' } }))
 
 const question = { id: 'q1', text: 'Où est Paris ?', themeId: 'cities', lat: 48.8566, lng: 2.3522, toleranceM: 50000, approved: true, upVotes: 2, downVotes: 1, createdAt: '2026-10-20', answerArea: { type: 'Polygon' as const, coordinates: [[[2, 48], [3, 48], [3, 49], [2, 48]]] } }
-function dashboard(): AdminDashboard { return { users: [], themes: [{ id: 'cities', name: 'Villes', emoji: '🏙️', createdAt: '2026-10-20' }], questions: [question], geoBattles: [], pendingNewQuestions: [], pendingEditProposals: [], communityMinNetVotes: 4, communityEditProposalRemoveMinNetDown: 5 } }
+function dashboard(): AdminDashboard { return { users: [], themes: [{ id: 'cities', name: 'Villes', emoji: '🏙️', createdAt: '2026-10-20' }, { id: 'countries', name: 'Pays', emoji: '🌍', createdAt: '2026-10-20' }], questions: [question], geoBattles: [], pendingNewQuestions: [], pendingEditProposals: [], defaultQuizThemeId: 'cities', communityMinNetVotes: 4, communityEditProposalRemoveMinNetDown: 5 } }
 let state: ReturnType<typeof createAdminDashboard>
 const wrappers: VueWrapper[] = []
 async function setup(child?: ReturnType<typeof defineComponent>, url = '/admin') {
@@ -97,6 +97,13 @@ describe('administration — session et contrats API', () => {
 })
 
 describe('administration — formulaires', () => {
+  it('saves the selected default quiz theme', async () => {
+    const { wrapper } = await setup((await import('./AdminThemes.vue')).default)
+    const select = wrapper.find('select')
+    expect((select.element as HTMLSelectElement).value).toBe('cities')
+    await select.setValue('countries')
+    expect(mocks.api).toHaveBeenCalledWith('/admin/themes/default', { method: 'POST', body: { themeId: 'countries' } })
+  })
   it('shows the login form instead of protected tables without authentication', async () => {
     mocks.api.mockResolvedValue({ configured: true, authed: false })
     const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/admin', component: AdminView }] })

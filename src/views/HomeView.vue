@@ -5,7 +5,7 @@ import { ArrowRight, BookOpen, Check, ChevronDown, ChevronUp, Flame, Globe2, Hel
 import { api, errorMessage } from '$lib/api'
 import { app, refreshApp } from '$lib/appStore'
 import { appUrl, asset } from '$lib/appUrl'
-import { ACTU_THEME_ID, DEFAULT_QUIZ_THEME_ID, MIX_THEME_ID, resolvedDefaultQuizThemeId } from '$lib/themes'
+import { ACTU_THEME_ID, MIX_THEME_ID, resolvedDefaultQuizThemeId } from '$lib/themes'
 import type { Theme } from '$lib/types'
 import { formatToleranceRadiusKm } from '$lib/geo/score'
 import { fixGoogleTranslateScrollLayout, lockQuizViewportScroll, scheduleTranslateRefresh } from '$lib/googleTranslateBrowser'
@@ -90,7 +90,7 @@ function createTheme() {
 }
 function openLeaderboard() {
   const themes = app.themes.filter(t => t.id !== MIX_THEME_ID)
-  const fallback = themes.some(t => t.id === DEFAULT_QUIZ_THEME_ID) ? DEFAULT_QUIZ_THEME_ID : themes[0]?.id ?? ''
+  const fallback = themes[0]?.id ?? ''
   boardThemeId.value = activeThemeId.value === MIX_THEME_ID ? fallback : activeThemeId.value || fallback
   boardOpen.value = true
 }
