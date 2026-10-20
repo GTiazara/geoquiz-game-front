@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Mail, ShieldCheck } from 'lucide-vue-next'
 
-const LAST_UPDATE = '17 avril 2026'
+const LAST_UPDATE = '20 octobre 2026'
 const CONTACT_EMAIL = 'contact@skippylab.com'
 const toc = [
   'Responsable du traitement',
@@ -56,8 +56,10 @@ function scrollTo(n: number): void {
     <section id="privacy-2" class="panel">
       <h2>2. Données que nous traitons</h2>
       <ul>
-        <li><strong>Identifiant d’appareil (« deviceId »)</strong> : identifiant anonyme généré localement et associé à votre session. Il permet de conserver votre progression entre les visites sans demander d’e-mail ni de mot de passe.</li>
+        <li><strong>Identifiant de navigateur (« deviceId »)</strong> : identifiant anonyme conservé dans le stockage local du navigateur. Il identifie le profil visiteur, qui reste lié à ce navigateur.</li>
+        <li><strong>Ancien cookie V1 (« geopin_device »)</strong> : si ce cookie HttpOnly est encore présent et accessible sur le domaine de l’API, il permet de retrouver votre ancien compte sans mot de passe. L’identifiant est alors repris par la V2. Ce cookie seul ne permet plus l’accès au compte après la création du mot de passe.</li>
         <li><strong>Pseudo</strong> : choisi librement par vous (compte invité ou compte « inscrit »). Aucun nom réel ni adresse e-mail n’est requis.</li>
+        <li><strong>Mot de passe et session de compte</strong> : l’inscription demande uniquement un pseudo et un mot de passe. Seul un hachage salé du mot de passe (scrypt) est conservé côté serveur. Un jeton de session est enregistré dans votre navigateur ; seul son hachage est conservé côté serveur. La connexion permet de retrouver le même profil sur plusieurs appareils, sans information personnelle supplémentaire.</li>
         <li><strong>Progression de jeu</strong> : expérience (XP), scores par thème, résultats des Geobattle (distance, temps), liés au deviceId.</li>
         <li><strong>Contributions</strong> : questions, coordonnées géographiques du lieu à deviner, descriptions, images/URL YouTube ajoutées, votes. Ces contenus sont destinés à être affichés publiquement dans le jeu.</li>
         <li><strong>Mesure d’audience</strong> : pages consultées, via une instance auto-hébergée de <em>Matomo</em> (<code class="mono">matomo.gtiazara.fr</code>). Aucune donnée d’audience n’est transmise à des régies publicitaires ou à des tiers.</li>
@@ -90,6 +92,7 @@ function scrollTo(n: number): void {
       <ul>
         <li><strong>Comptes invités</strong> : les sessions « visiteur » sont conservées pour la journée UTC en cours, puis purgées automatiquement.</li>
         <li><strong>Comptes inscrits (pseudo)</strong> : conservés tant que le compte existe. Vous pouvez demander la suppression à tout moment (voir ci-dessous).</li>
+        <li><strong>Sessions de connexion</strong> : valables 30 jours, révoquées à la déconnexion sur le navigateur concerné. La suppression du compte efface son mot de passe haché et toutes ses sessions.</li>
         <li><strong>Contributions publiques</strong> : les questions publiées restent associées à votre pseudo tant qu’elles sont utilisées dans le jeu. En cas de suppression de compte, les questions peuvent être conservées sous forme anonymisée.</li>
         <li><strong>Journaux serveur / audience</strong> : conservés de manière limitée et régulièrement purgés.</li>
       </ul>
@@ -100,14 +103,14 @@ function scrollTo(n: number): void {
       <p>Conformément au RGPD, vous disposez d’un droit d’accès, de rectification, de suppression, de limitation et d’opposition. Vous pouvez :</p>
       <ul>
         <li>Supprimer votre compte et les données associées depuis la page <RouterLink class="link" to="/compte">Mon compte</RouterLink>.</li>
-        <li>Vider vos données locales en désinstallant l’application ou en effaçant le stockage du navigateur (ce qui régénère un nouveau deviceId).</li>
+        <li>Vider vos données locales en effaçant le stockage du navigateur. Cela oublie la session locale sans supprimer le compte : vous pouvez vous reconnecter avec votre pseudo et votre mot de passe.</li>
         <li>Nous écrire à <a class="link" :href="`mailto:${CONTACT_EMAIL}`">{{ CONTACT_EMAIL }}</a> pour toute demande liée à vos droits.</li>
       </ul>
     </section>
 
     <section id="privacy-7" class="panel">
       <h2>7. Sécurité</h2>
-      <p>Les échanges sont chiffrés (HTTPS). L’accès à la base de données est restreint. Les mots de passe de l’espace d’administration ne sont pas partagés. En cas d’incident de sécurité susceptible d’affecter vos données, l’éditeur prendra les mesures appropriées, dans le cadre d’un service opéré à titre personnel.</p>
+      <p>Les échanges sont chiffrés (HTTPS). L’accès à la base de données est restreint. Les mots de passe des comptes sont hachés avec un sel aléatoire et les tentatives de connexion sont limitées. Sans adresse e-mail, aucun mot de passe ne peut être renvoyé ou réinitialisé par e-mail. En cas d’incident de sécurité susceptible d’affecter vos données, l’éditeur prendra les mesures appropriées, dans le cadre d’un service opéré à titre personnel.</p>
     </section>
 
     <section id="privacy-8" class="panel">

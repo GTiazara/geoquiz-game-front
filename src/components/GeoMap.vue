@@ -1287,7 +1287,7 @@ Exposed methods: none (the original exports no instance methods).
 			'Imagerie Google': googleSatellite
 		};
 
-		return { layers, esri, googleSatellite, cartoVoyagerOpacity };
+		return { layers, esri, googleSatellite, cartoVoyagerOpacity, opentopomap, ign, satelliteHybrid, cartoVoyager, street };
 	}
 
 	watchEffect((onCleanup) => {

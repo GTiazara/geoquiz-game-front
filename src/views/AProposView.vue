@@ -95,7 +95,7 @@ const themes = [
       <div class="stack-sm">
         <h2>Compte et progression</h2>
         <p>Vous pouvez jouer <strong>sans créer de compte</strong> (mode visiteur). Votre progression est liée à votre appareil et réinitialisée chaque jour UTC.</p>
-        <p>Créez un <strong>pseudo gratuit</strong> (sans e-mail) pour sauvegarder votre XP, accéder au classement des inscrits, et contribuer à la communauté.</p>
+        <p>Créez un <strong>compte gratuit avec pseudo et mot de passe</strong>, sans e-mail ni autre information personnelle, pour retrouver votre XP sur tous vos appareils, accéder au classement des inscrits et contribuer à la communauté.</p>
       </div>
     </section>
 

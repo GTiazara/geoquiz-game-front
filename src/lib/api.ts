@@ -8,6 +8,7 @@
 
 const DEVICE_KEY = 'geopin_device'
 const ADMIN_KEY = 'geopin_admin_token'
+const ACCOUNT_KEY = 'geopin_account_token'
 const DEVICE_PATTERN = /^[A-Za-z0-9_-]{16,64}$/
 
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
@@ -43,6 +44,16 @@ function storageSet(store: 'local' | 'session', key: string, value: string | nul
 }
 
 let deviceIdMemory: string | null = null
+let accountTokenMemory: string | null = null
+
+export function getAccountToken(): string | null {
+  try { return localStorage.getItem(ACCOUNT_KEY) } catch { return accountTokenMemory }
+}
+
+export function setAccountToken(token: string | null): void {
+  accountTokenMemory = token
+  storageSet('local', ACCOUNT_KEY, token)
+}
 
 export function getDeviceId(): string | null {
   const v = deviceIdMemory ?? storageGet('local', DEVICE_KEY)
@@ -56,6 +67,7 @@ export function setDeviceId(id: string | null): void {
 
 /** Oublie l’appareil courant (après suppression de compte) : un nouvel identifiant sera attribué. */
 export function resetDeviceId(): void {
+  setAccountToken(null)
   setDeviceId(null)
 }
 
@@ -94,6 +106,8 @@ export async function apiFetch(path: string, opts: RequestOptions = {}): Promise
   if (device) headers['X-Device-Id'] = device
   const admin = getAdminToken()
   if (admin) headers['X-Admin-Token'] = admin
+  const account = getAccountToken()
+  if (account) headers.Authorization = `Bearer ${account}`
   let body: string | undefined
   if (opts.rawBody !== undefined) {
     body = opts.rawBody
@@ -102,7 +116,12 @@ export async function apiFetch(path: string, opts: RequestOptions = {}): Promise
     body = JSON.stringify(opts.body)
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(url, { method: opts.method ?? (body ? 'POST' : 'GET'), headers, body, signal: opts.signal })
+  const res = await fetch(url, { method: opts.method ?? (body ? 'POST' : 'GET'), headers, body, signal: opts.signal, credentials: 'include' })
+  if (res.status === 401 && account && getAccountToken() === account) {
+    resetDeviceId()
+    window.dispatchEvent(new Event('geopin-session-expired'))
+    if (path === '/bootstrap') return apiFetch(path, opts)
+  }
   const assigned = res.headers.get('X-Device-Id')
   if (assigned && assigned !== device && DEVICE_PATTERN.test(assigned)) setDeviceId(assigned)
   return res

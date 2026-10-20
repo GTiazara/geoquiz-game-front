@@ -1,13 +1,46 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Copy, Link2, ShieldAlert, Trophy, Smartphone } from 'lucide-vue-next'
+import { useRoute, useRouter } from 'vue-router'
+import { Copy, Link2, ShieldAlert, Trophy, Smartphone, LogOut, LockKeyhole } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import { api, errorMessage, resetDeviceId } from '$lib/api'
+import { api, errorMessage, resetDeviceId, setAccountToken } from '$lib/api'
 import { app, refreshApp } from '$lib/appStore'
 import { copyTextToClipboard } from '$lib/copy_to_clipboard'
 
 const router = useRouter()
+const route = useRoute()
+const password = ref('')
+const passwordConfirm = ref('')
+const accountBusy = ref(false)
+const accountError = ref('')
+async function secureAccount() {
+  if (accountBusy.value) return
+  accountError.value = ''
+  if (password.value !== passwordConfirm.value) { accountError.value = 'Les mots de passe ne correspondent pas.'; return }
+  accountBusy.value = true
+  try {
+    const result = await api<{ token: string }>('/auth/register', { method: 'POST', body: { pseudo: app.player?.pseudo, password: password.value } })
+    setAccountToken(result.token)
+    password.value = ''; passwordConfirm.value = ''
+    await refreshApp()
+    const next = route.query.next
+    if (!app.error && typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\')) {
+      await router.push(next)
+    }
+  } catch (err) { accountError.value = errorMessage(err) }
+  finally { accountBusy.value = false }
+}
+async function logout() {
+  if (accountBusy.value) return
+  accountBusy.value = true; accountError.value = ''
+  try {
+    await api('/auth/logout', { method: 'POST' })
+    resetDeviceId()
+    await refreshApp()
+    await router.push('/')
+  } catch (err) { accountError.value = errorMessage(err) }
+  finally { accountBusy.value = false }
+}
 const linkCode = ref('')
 const linkExpires = ref('')
 const linkError = ref('')
@@ -58,14 +91,28 @@ async function deleteAccount() {
 
 <template>
   <div class="narrow stack">
-    <header class="page-heading"><span class="eyebrow">Mon espace</span><h1>Ton compte</h1><p>Gratuit, sans e-mail : le pseudo sert seulement d’étiquette dans le jeu et le classement.</p></header>
+    <header class="page-heading"><span class="eyebrow">Mon espace</span><h1>Ton compte</h1><p>Un pseudo et un mot de passe. Aucune adresse e-mail ni autre information personnelle demandée.</p></header>
+    <section v-if="app.accountAuthenticated" class="stack">
+      <p class="notice">Ton compte est accessible sur tous tes appareils avec ton pseudo et ton mot de passe.</p>
+      <p v-if="accountError" class="alert" role="alert">{{ accountError }}</p>
+      <div class="actions"><button type="button" class="btn btn-secondary" :disabled="accountBusy || deleteBusy" @click="logout"><LogOut :size="16" /> {{ accountBusy ? 'Déconnexion…' : 'Se déconnecter' }}</button></div>
+    </section>
+    <form v-else class="stack" @submit.prevent="secureAccount">
+      <h2><LockKeyhole :size="20" /> Ajouter un mot de passe</h2>
+      <p class="notice">Ton compte @{{ app.player?.pseudo }} a été retrouvé sur ce navigateur. Tu conserves ton pseudo, tes XP et tes contributions. Crée simplement ton mot de passe pour utiliser ce même compte sur tous tes appareils.</p>
+      <div class="field"><label for="account-password">Mot de passe (12 caractères minimum)</label><input id="account-password" v-model="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required :disabled="accountBusy" /></div>
+      <div class="field"><label for="account-password-confirm">Confirme le mot de passe</label><input id="account-password-confirm" v-model="passwordConfirm" type="password" minlength="12" maxlength="128" autocomplete="new-password" required :disabled="accountBusy" /></div>
+      <p class="field-hint">Conserve ton mot de passe : aucun e-mail de récupération ne pourra être envoyé.</p>
+      <p v-if="accountError" class="alert" role="alert">{{ accountError }}</p>
+      <div class="actions"><button type="submit" class="btn btn-primary" :disabled="accountBusy || deleteBusy"><LockKeyhole :size="16" /> {{ accountBusy ? 'Enregistrement…' : 'Sécuriser mon compte' }}</button></div>
+    </form>
     <section class="surface panel stack">
       <div class="actions profile"><span class="avatar profile-avatar">{{ initials }}</span><div><h2>@{{ app.player?.pseudo ?? '…' }}</h2><p class="subtle">Profil enregistré · progression durable</p></div><span class="badge xp"><Trophy :size="18" /> {{ Math.round(app.player?.xpTotal ?? 0).toLocaleString('fr-FR') }} XP total</span></div>
       <hr /><h3>XP par thème</h3>
       <ul v-if="themeXp.length" class="xp-list"><li v-for="entry in themeXp" :key="entry.id" class="between"><span>{{ entry.theme?.emoji ?? '🌍' }} {{ entry.theme?.name ?? entry.id }}</span><strong>{{ Math.round(entry.xp).toLocaleString('fr-FR') }} XP</strong></li></ul>
       <p v-else class="subtle">Tes premières parties feront apparaître ta progression par thème ici.</p>
     </section>
-    <section class="surface panel stack">
+    <section v-if="!app.accountAuthenticated" class="surface panel stack">
       <div class="actions"><Smartphone :size="22" /><h2>Code pour un autre appareil</h2></div>
       <p class="subtle">Nouveau téléphone ou navigateur : génère un code, puis sur l’autre appareil ouvre <strong>Créer ton pseudo → Déjà un compte</strong> et saisis-le. Le code expire en 10 minutes et ne marche qu’une fois. Ne le partage pas.</p>
       <div v-if="linkCode" class="surface-flat panel stack-sm"><div class="between"><strong class="mono link-code">{{ linkCode }}</strong><button type="button" class="btn btn-secondary btn-sm" @click="copyCode"><Copy :size="16" /> Copier le code</button></div><p v-if="expiresLabel" class="subtle">Valide jusqu’au {{ expiresLabel }}</p><p v-if="copyMessage" class="subtle" role="status">{{ copyMessage }}</p></div>

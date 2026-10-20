@@ -7,6 +7,7 @@ declare module 'vue-router' {
     title: string
     /** Page carte plein écran (pas de marge, pas de défilement). */
     immersive?: boolean
+    flowing?: boolean
     /** Réservée aux joueurs inscrits ; valeur = cible de redirection. */
     registered?: 'next' | 'plain'
   }
@@ -19,8 +20,10 @@ if (ROUTER_MODE === 'hash' && window.location.hash.startsWith('#googtrans')) {
 
 const safeNext = (raw: unknown): string | null => {
   const s = typeof raw === 'string' ? raw : ''
-  return s.startsWith('/') && !s.startsWith('//') ? s : null
+  return s.startsWith('/') && !s.startsWith('//') && !s.includes('\\') ? s : null
 }
+
+let legacyPasswordPrompted = false
 
 export const router = createRouter({
   history: ROUTER_MODE === 'hash' ? createWebHashHistory(import.meta.env.BASE_URL) : createWebHistory(import.meta.env.BASE_URL),
@@ -29,12 +32,12 @@ export const router = createRouter({
     { path: '/', name: 'play', component: () => import('./views/HomeView.vue'), meta: { title: 'Jouer', immersive: true } },
     { path: '/themes', name: 'themes', component: () => import('./views/ThemesView.vue'), meta: { title: 'Thèmes' } },
     { path: '/geobattle', name: 'geobattle', component: () => import('./views/GeoBattleView.vue'), meta: { title: 'Geobattle' } },
-    { path: '/geobattle/:id', name: 'geobattle-room', component: () => import('./views/GeoBattleRoomView.vue'), meta: { title: 'Duel', immersive: true } },
-    { path: '/histoire', name: 'histoire', component: () => import('./views/HistoireView.vue'), meta: { title: 'Aventures historiques', immersive: true } },
+    { path: '/geobattle/:id', name: 'geobattle-room', component: () => import('./views/GeoBattleRoomView.vue'), meta: { title: 'Duel', immersive: true, flowing: true } },
+    { path: '/histoire', name: 'histoire', component: () => import('./views/HistoireView.vue'), meta: { title: 'Aventures historiques', immersive: true, flowing: true } },
     { path: '/contribute', name: 'contribute', component: () => import('./views/ContributeView.vue'), meta: { title: 'Contribuer', registered: 'next' } },
     { path: '/communaute', name: 'communaute', component: () => import('./views/CommunauteView.vue'), meta: { title: 'Communauté' } },
     { path: '/compte', name: 'compte', component: () => import('./views/CompteView.vue'), meta: { title: 'Mon compte', registered: 'plain' } },
-    { path: '/onboard', name: 'onboard', component: () => import('./views/OnboardView.vue'), meta: { title: 'Choisir un pseudo' } },
+    { path: '/onboard', name: 'onboard', component: () => import('./views/OnboardView.vue'), meta: { title: 'Connexion et inscription' } },
     { path: '/a-propos', name: 'a-propos', component: () => import('./views/AProposView.vue'), meta: { title: 'À propos' } },
     { path: '/privacy', name: 'privacy', component: () => import('./views/PrivacyView.vue'), meta: { title: 'Confidentialité' } },
     { path: '/admin', name: 'admin', component: () => import('./views/AdminView.vue'), meta: { title: 'Administration' } },
@@ -47,6 +50,12 @@ router.beforeEach(async (to: RouteLocationNormalized) => {
   if (to.path.startsWith('/googtrans')) return { path: '/', replace: true }
   if (!app.ready) await refreshApp({ theme: typeof to.query.theme === 'string' ? to.query.theme : null })
   if (app.error) return true
+  if (isRegistered() && !app.accountAuthenticated && !legacyPasswordPrompted && !to.path.startsWith('/admin') && to.name !== 'privacy') {
+    legacyPasswordPrompted = true
+    if (to.name !== 'compte') {
+      return { path: '/compte', query: { next: to.name === 'onboard' ? safeNext(to.query.next) ?? '/' : to.fullPath } }
+    }
+  }
   if (to.meta.registered && !isRegistered()) {
     return to.meta.registered === 'next' ? { path: '/onboard', query: { next: to.fullPath } } : { path: '/onboard' }
   }

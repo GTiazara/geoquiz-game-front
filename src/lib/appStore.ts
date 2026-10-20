@@ -7,6 +7,7 @@ import type { StoryAdventure } from './historyAdventures'
 export type BootstrapData = {
   deviceId: string
   isAdmin: boolean
+  accountAuthenticated: boolean
   player: PlayerRow | null
   themes: Theme[]
   themeStats: Record<string, ThemeStat>
@@ -38,6 +39,7 @@ export const app = reactive<AppState>({
   generation: 0,
   deviceId: '',
   isAdmin: false,
+  accountAuthenticated: false,
   player: null,
   themes: [],
   themeStats: {},
@@ -75,6 +77,12 @@ export function refreshApp(opts: { theme?: string | null } = {}): Promise<void> 
 
 /** Alias explicite pour les ports depuis SvelteKit. */
 export const invalidateAll = refreshApp
+
+window.addEventListener('geopin-session-expired', () => {
+  app.accountAuthenticated = false
+  app.player = null
+  if (!app.loading) void refreshApp()
+})
 
 export function isRegistered(): boolean {
   return Boolean(app.player && app.player.isGuest !== true && app.player.pseudo)

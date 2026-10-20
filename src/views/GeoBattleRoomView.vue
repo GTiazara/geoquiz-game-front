@@ -66,7 +66,7 @@ const nextBusy = ref(false)
 const deleteBusy = ref(false)
 const deleteOpen = ref(false)
 const borders = ref(true)
-const panelOpen = ref(false)
+const panelOpen = ref(true)
 const now = ref(Date.now())
 const roundStartedAt = ref(Date.now())
 const lockedTimeSec = ref(0)
@@ -229,8 +229,8 @@ function onMediaSaved(update: Question) {
 </script>
 
 <template>
-  <section class="battle-room map-stage">
-    <div class="battle-map"><GeoMap :key="`${question?.id ?? 'lobby'}-${borders}`" v-model:guess="guess" :interactive="interactive" :answer="answer" :show-result="showResult" :show-basemap-selector="showResult" :tolerance-m="answer?.toleranceM ?? question?.toleranceM ?? 50000" :answer-area="question?.answerArea ?? null" :borders="borders" :allow-overlay-translation="true" :result-fit-auto-bounds="false" :participant-guess-markers="participantMarkers" :correction-popup="correctionPopup" :on-correction-media-saved="onMediaSaved" /></div>
+  <section class="battle-room" aria-label="Partie Geobattle">
+    <div v-if="question" class="battle-map"><GeoMap :key="`${question.id}-${borders}`" v-model:guess="guess" :interactive="interactive" :answer="answer" :show-result="showResult" :show-basemap-selector="showResult" :tolerance-m="answer?.toleranceM ?? question.toleranceM ?? 50000" :answer-area="question.answerArea ?? null" :borders="borders" :allow-overlay-translation="true" :result-fit-auto-bounds="false" :participant-guess-markers="participantMarkers" :correction-popup="correctionPopup" :on-correction-media-saved="onMediaSaved" /></div>
     <div class="room-top map-overlay">
       <header class="hud-card room-header"><div class="actions"><RouterLink to="/geobattle" class="icon-button sm" aria-label="Retour aux Geobattle"><ArrowLeft :size="17" /></RouterLink><div><span class="room-eyebrow">Geobattle</span><h1>{{ themeLabel ? `${themeLabel.emoji} ${themeLabel.name}` : 'Le duel géographique' }}</h1></div></div><div class="actions header-actions"><span v-if="question" class="badge">Manche {{ questionIndex + 1 }}/{{ totalQuestions }}</span><ShareGeoBattleLink :share-url="shareUrl" compact /><button type="button" class="icon-button sm" :aria-expanded="panelOpen" aria-controls="battle-ranking" aria-label="Afficher le classement" @click="panelOpen = !panelOpen"><Trophy :size="17" /></button><button v-if="canDeleteDuel" type="button" class="icon-button sm" :disabled="deleteBusy" aria-label="Supprimer cette Geobattle" @click="deleteOpen = true"><Trash2 :size="15" /></button></div></header>
       <div v-if="syncErr" class="notice warn sync-message" role="status">{{ syncErr }} <button type="button" class="btn btn-ghost btn-sm" @click="loadBattle(true)">Réessayer</button></div>
@@ -251,5 +251,72 @@ function onMediaSaved(update: Question) {
 </template>
 
 <style scoped>
-.battle-room{position:relative;flex:1;min-height:0;isolation:isolate;overflow:hidden}.battle-map{position:absolute;inset:0;z-index:0}.battle-map :deep(.geo-map){height:100%}.map-overlay{position:absolute;z-index:500;pointer-events:none}.map-overlay :deep(button),.map-overlay :deep(a),.map-overlay :deep(input),.hud-card{pointer-events:auto}.room-top{left:20px;right:20px;top:16px;display:grid;gap:8px}.room-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}.room-header h1{font-size:17px;letter-spacing:-.3px}.room-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}.header-actions{gap:7px}.question-hud{top:112px;left:20px;width:min(430px,calc(100% - 390px))}.question-card{padding:18px;display:grid;gap:10px}.question-card h2{font-size:19px;line-height:1.4}.question-card .eyebrow{margin:0}.timer{display:flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums;font-weight:750;color:var(--primary-strong);white-space:nowrap}.timer.urgent{color:var(--danger)}.timer-track,.lobby-progress{height:5px;background:var(--border);border-radius:20px;overflow:hidden}.timer-track span,.lobby-progress span{display:block;height:100%;background:var(--primary);transition:width .25s linear}.border-toggle{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}.room-center{inset:110px 20px 30px;display:flex;align-items:center;justify-content:center;padding-right:350px;overflow:auto}.center-card{max-width:440px;width:100%;padding:28px;text-align:center;justify-items:center;margin:auto}.center-card p{font-size:14px}.lobby-icon{display:grid;place-items:center;background:var(--primary-soft);color:var(--primary-strong);border-radius:20px;width:68px;height:68px}.lobby-progress{width:100%}.lobby-players{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%;text-align:left}.lobby-players li{display:flex;align-items:center;gap:10px}.lobby-players li svg{margin-left:auto;color:var(--primary)}.trophy{color:var(--accent)}.ranking-hud{top:112px;right:20px;width:320px;bottom:160px;display:flex;align-items:flex-start}.ranking-card{max-height:100%;width:100%;overflow:auto;padding:17px;display:grid;gap:12px}.ranking-card h2{font-size:15px;display:flex;gap:7px;align-items:center}.ranking-card .subtle{font-size:11px}.ranking-list{list-style:none;margin:0;padding:0;display:grid;gap:5px}.ranking-list li{display:flex;gap:9px;align-items:center;padding:10px 6px;border-radius:9px;border-bottom:1px solid var(--border);font-size:12px}.ranking-list li.self{background:var(--primary-soft)}.rank{width:23px;font-weight:750;color:var(--muted)}.player-name{flex:1;min-width:0;overflow-wrap:anywhere}.player-score{text-align:right;font-variant-numeric:tabular-nums}.player-name small,.player-score small{display:block;font-size:10px}.empty-ranking{padding:16px 0;color:var(--muted);font-size:12px}.participants{border-top:1px solid var(--border);padding-top:12px}.participants h3{display:flex;gap:6px;align-items:center;font-size:12px}.participants ul{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:10px 0 0}.participants li{display:flex;gap:5px;align-items:center;font-size:12px}.presence-dot{height:6px;width:6px;background:var(--primary);border-radius:50%}.round-footer{bottom:20px;left:20px;right:20px}.footer-card{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}.round-status{display:grid;gap:5px}.round-status .badge{justify-self:start}.footer-actions{justify-content:end}.ranking-close,.mobile-ranking{display:none}.sync-message{pointer-events:auto}.hud-card{background:#fffffff5;border:1px solid var(--border);border-radius:15px;box-shadow:var(--shadow-md)}@media(min-width:1100px){.ranking-hud:not(.has-question){bottom:30px}}@media(max-width:1100px){.question-hud{width:min(420px,calc(100% - 40px))}.ranking-hud{display:none;top:110px;bottom:140px;z-index:650}.ranking-hud.is-open{display:flex}.ranking-close,.mobile-ranking{display:inline-flex}.room-center{padding-right:0}.footer-card{padding:14px}.footer-actions{gap:7px}.footer-actions :deep(.translate-bar){max-width:100%}}@media(max-width:600px){.battle-room{min-height:0}.room-top{top:10px;left:10px;right:10px}.room-header{padding:9px;gap:5px;flex-wrap:wrap}.room-header h1{font-size:14px}.room-eyebrow{font-size:9px}.room-header .actions{gap:5px}.question-hud{left:10px;top:112px;width:calc(100% - 20px)}.question-card{padding:12px;gap:6px}.question-card h2{font-size:16px}.question-card :deep(.question-heading__media img){max-height:48px}.round-footer{bottom:10px;left:10px;right:10px}.footer-card{display:grid;gap:9px}.footer-actions{justify-content:start;flex-wrap:wrap}.footer-actions .btn-lg{min-height:40px;padding:9px 15px;font-size:13px}.round-status strong{font-size:13px}.round-status .subtle{font-size:11px}.ranking-hud{right:10px;left:10px;width:auto;top:110px;bottom:175px}.room-center{inset:110px 10px 15px}.center-card{padding:22px}.header-actions{margin-left:auto}}
+.battle-room { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 1320px; margin: 0 auto; padding: 14px 24px 24px; min-width: 0; }
+.map-overlay { position: static; pointer-events: auto; }
+.hud-card { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.room-top { order: 0; display: grid; gap: 8px; }
+.room-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 0 0 12px; border-bottom: 1px solid var(--border); }
+.room-header h1 { font-size: 18px; line-height: 1.4; letter-spacing: 0; overflow-wrap: anywhere; }
+.room-eyebrow { font-size: 11px; color: var(--muted); }
+.header-actions { gap: 7px; }
+.question-hud { order: 1; min-width: 0; }
+.question-card { display: grid; gap: 9px; padding: 2px 0 4px; }
+.question-card h2 { font-size: 19px; line-height: 1.4; overflow-wrap: anywhere; }
+.question-card .eyebrow { margin: 0; }
+.question-card :deep(.question-heading__image) { width: 72px; height: 56px; border-radius: 6px; }
+.battle-map { order: 2; position: relative; height: clamp(360px, 57dvh, 720px); flex: none; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; isolation: isolate; }
+.battle-map :deep(.geo-map) { height: 100%; }
+.timer { display: flex; gap: 6px; align-items: center; font-variant-numeric: tabular-nums; font-weight: 750; color: var(--primary-strong); white-space: nowrap; }
+.timer.urgent { color: var(--danger); }
+.timer-track, .lobby-progress { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.timer-track span, .lobby-progress span { display: block; height: 100%; background: var(--primary); transition: width .25s linear; }
+.border-toggle { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.room-center { order: 1; display: grid; place-items: center; padding: 24px 0; }
+.center-card { max-width: 440px; width: 100%; padding: 20px 0; text-align: center; justify-items: center; }
+.center-card p { font-size: 14px; }
+.lobby-icon { display: grid; place-items: center; background: var(--primary-soft); color: var(--primary-strong); border-radius: 8px; width: 60px; height: 60px; }
+.lobby-progress { width: 100%; }
+.lobby-players { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; width: 100%; text-align: left; }
+.lobby-players li { display: flex; align-items: center; gap: 10px; }
+.lobby-players li svg { margin-left: auto; color: var(--primary); }
+.trophy { color: var(--accent); }
+.round-footer { order: 3; }
+.footer-card { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 4px 0 14px; border-bottom: 1px solid var(--border); }
+.round-status { display: grid; gap: 5px; min-width: 0; }
+.round-status .badge { justify-self: start; }
+.round-status strong { font-size: 14px; }
+.footer-actions { justify-content: end; flex-shrink: 0; }
+.ranking-hud { order: 4; }
+.ranking-hud:not(.is-open) { display: none; }
+.ranking-card { display: grid; gap: 10px; padding: 8px 0; }
+.ranking-card h2 { font-size: 15px; display: flex; gap: 7px; align-items: center; }
+.ranking-card .subtle { font-size: 12px; }
+.ranking-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ranking-list li { display: flex; gap: 12px; align-items: center; padding: 12px 10px; border-radius: 6px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.ranking-list li.self { background: var(--primary-soft); }
+.rank { width: 26px; font-weight: 750; color: var(--muted); }
+.player-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.player-score { text-align: right; font-variant-numeric: tabular-nums; }
+.player-name small, .player-score small { display: block; font-size: 11px; }
+.empty-ranking { padding: 10px 0; color: var(--muted); font-size: 13px; }
+.participants { border-top: 1px solid var(--border); padding-top: 12px; }
+.participants h3 { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+.participants ul { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 10px 0 0; }
+.participants li { display: flex; gap: 5px; align-items: center; font-size: 12px; }
+.presence-dot { height: 6px; width: 6px; background: var(--primary); border-radius: 50%; }
+.round-footer .mobile-ranking { display: none; }
+@media (max-width: 767px) {
+  .battle-room { padding: 12px 12px calc(var(--mobile-nav-h) + 20px + env(safe-area-inset-bottom)); gap: 10px; }
+  .room-header { gap: 8px; }
+  .room-header h1 { font-size: 16px; }
+  .room-header .actions { gap: 6px; }
+  .header-actions { margin-left: auto; }
+  .header-actions .badge { font-size: 11px; }
+  .question-card h2 { font-size: 17px; }
+  .battle-map { height: clamp(260px, calc(100dvh - 540px), 520px); }
+  .footer-card { align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+  .footer-actions { margin-left: auto; flex-wrap: wrap; }
+  .footer-actions .btn-lg { min-height: 42px; padding: 10px 16px; font-size: 13px; }
+  .round-status .subtle { font-size: 12px; }
+}
 </style>

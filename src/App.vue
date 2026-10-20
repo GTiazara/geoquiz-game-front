@@ -27,6 +27,7 @@ const nav = computed(() => [
 const mobileNav = computed(() => [nav.value[0]!, nav.value[1]!, nav.value[2]!, nav.value[3]!, { to: '/compte', label: 'Compte', icon: UserRound }])
 
 const immersive = computed(() => Boolean(route.meta.immersive))
+const flowing = computed(() => Boolean(route.meta.flowing))
 const registered = computed(() => isRegistered())
 const pseudo = computed(() => (registered.value ? app.player?.pseudo ?? '' : 'Invité'))
 const xp = computed(() => app.player?.xpTotal ?? 0)
@@ -38,7 +39,7 @@ function isActive(to: string): boolean {
   return route.path === to || route.path.startsWith(`${to}/`)
 }
 
-watch(immersive, (v) => document.documentElement.classList.toggle('gp-quiz-viewport-lock', v), { immediate: true })
+watch([immersive, flowing], ([fullScreen, scrollable]) => document.documentElement.classList.toggle('gp-quiz-viewport-lock', fullScreen && !scrollable), { immediate: true })
 
 let stopFloatUi: (() => void) | null = null
 const resetTimers: number[] = []
@@ -143,12 +144,12 @@ onBeforeUnmount(() => {
       </div>
       <div class="topbar-right">
         <span class="xp-pill" title="Expérience cumulée"><Sparkles :size="14" aria-hidden="true" /> {{ xp.toLocaleString('fr-FR') }} XP</span>
-        <RouterLink v-if="!registered" to="/onboard" class="btn btn-primary btn-sm">S’inscrire</RouterLink>
+        <RouterLink v-if="!registered" to="/onboard?mode=login" class="btn btn-primary btn-sm">Se connecter</RouterLink>
         <RouterLink v-else to="/compte" class="avatar" :title="pseudo" :aria-label="`Compte de ${pseudo}`">{{ initials }}</RouterLink>
       </div>
     </header>
 
-    <main id="main-content" :class="immersive ? 'page-immersive' : 'page'">
+    <main id="main-content" :class="immersive ? { 'page-immersive': true, 'page-flowing': flowing } : 'page'">
       <div v-if="!app.ready" class="loading"><span class="spinner" /> Chargement…</div>
       <div v-else-if="app.error && !app.themes.length" class="empty">
         <div class="empty-icon"><RefreshCw :size="26" /></div>

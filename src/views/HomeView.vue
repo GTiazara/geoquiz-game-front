@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowRight, Check, ChevronDown, ChevronUp, Flame, Globe2, HelpCircle, Layers, MapPin, Newspaper, Plus, Swords, Trophy, UserRound, X } from 'lucide-vue-next'
+import { ArrowRight, BookOpen, Check, ChevronDown, ChevronUp, Flame, Globe2, HelpCircle, Layers, Newspaper, Plus, Swords, Trophy, UserRound, X } from 'lucide-vue-next'
 import { api, errorMessage } from '$lib/api'
 import { app, refreshApp } from '$lib/appStore'
 import { appUrl, asset } from '$lib/appUrl'
@@ -204,10 +204,7 @@ onBeforeUnmount(() => {
             </div>
           </details>
         </div>
-        <div class="header-modes" aria-label="Autres modes de jeu">
-        <button type="button" class="icon-button sm" :disabled="!dailyGeobattleThemeId || dailyMapFabBusy" title="Geobattle du jour (UTC) pour ce thème" aria-label="Ouvrir la Geobattle du jour" @click="openBattle()"><span v-if="dailyMapFabBusy" class="spinner" /><Swords v-else :size="16" /></button>
-        <button type="button" class="icon-button sm" :disabled="!actuThemePresent || latestMapFabBusy || dailyMapFabBusy" :title="actuThemePresent ? 'Geobattle : dernière question publiée du thème actualité' : 'Crée d’abord un thème d’id « actu » (actualité).'" aria-label="Geobattle sur la dernière question publiée du thème actualité" @click="openBattle(true)"><span v-if="latestMapFabBusy" class="spinner" /><Newspaper v-else :size="16" /></button>
-        <button type="button" class="icon-button sm history-shortcut" title="À la trace de l’histoire" aria-label="Ouvrir À la trace de l’histoire" :aria-expanded="historyHintOpen" @click="openHistoryFeature"><img :src="asset('mascot/mascot.jpg')" alt="" /><span>NEW</span></button>
+        <div class="header-modes" aria-label="Options de la carte">
         <label class="borders-switch" title="Afficher ou masquer les frontières"><input v-model="borders" type="checkbox" aria-label="Afficher les frontières" /><Globe2 :size="16" /><span class="desktop-label">Frontières</span></label>
         </div>
         <div class="header-tools">
@@ -278,21 +275,24 @@ onBeforeUnmount(() => {
 
     <div v-if="shortcutError" class="map-overlay shortcut-error"><div class="alert" role="alert">{{ shortcutError }}<button type="button" class="btn btn-ghost btn-sm" aria-label="Fermer l’erreur" @click="shortcutError = ''"><X :size="14" /></button></div></div>
 
+    <nav v-if="current" class="map-overlay action-shortcuts" aria-label="Autres modes de jeu">
+      <button type="button" :disabled="!dailyGeobattleThemeId || dailyMapFabBusy || latestMapFabBusy" title="Geobattle du jour pour ce thème" aria-label="Ouvrir la Geobattle du jour" @click="openBattle()"><span v-if="dailyMapFabBusy" class="spinner" /><Swords v-else :size="18" /></button>
+      <button type="button" :disabled="!actuThemePresent || latestMapFabBusy || dailyMapFabBusy" :title="actuThemePresent ? 'Geobattle actualité' : 'Aucun thème actualité disponible'" aria-label="Geobattle sur la dernière question publiée du thème actualité" @click="openBattle(true)"><span v-if="latestMapFabBusy" class="spinner" /><Newspaper v-else :size="18" /></button>
+      <button type="button" title="À la trace de l’histoire" aria-label="Ouvrir À la trace de l’histoire" :aria-expanded="historyHintOpen" @click="openHistoryFeature"><BookOpen :size="18" /></button>
+    </nav>
+
     <div v-if="current" ref="actionRoot" class="map-overlay quiz-action">
       <Transition name="hud" mode="out-in">
-        <section :key="String(showResult)" class="hud-card action-card" aria-live="polite">
+        <section :key="String(showResult)" class="action-card" :class="{ 'is-result': showResult }" aria-live="polite">
           <template v-if="showResult">
             <div class="between"><span class="eyebrow result-label">{{ inBuffer ? 'Bien joué !' : 'Résultat de la manche' }}</span><span class="badge neutral"><Flame :size="13" /> Série {{ streak.current }}</span></div>
             <div class="result-stats"><div><strong class="xp-gain">+{{ lastXp.toLocaleString('fr-FR') }}</strong><span>XP{{ validating ? ' · enregistrement…' : !xpSaved ? ' · non enregistrés' : ' gagnés' }}</span></div><div><strong>{{ lastDist.toLocaleString('fr-FR') }}</strong><span>mètres de la cible</span></div></div>
             <div class="badges result-badges"><span v-if="current.answerArea && lastInsideAnswerArea === false" class="badge danger">Hors zone — 0 XP</span><span v-else-if="inBuffer" class="badge success"><Check :size="12" /> Dans la zone bonus</span><span v-if="streak.brokenPrev != null" class="badge warn">Série cassée après {{ streak.brokenPrev }}</span></div>
           </template>
-          <template v-else>
-            <p class="guess-hint"><MapPin :size="18" /><span>{{ guess ? 'Ton repère est placé. Prêt à valider ?' : 'Place ton repère sur la carte.' }}</span></p>
-            <small v-if="guess" class="coordinates">{{ guess.lat.toFixed(3) }}°, {{ (((guess.lng + 180) % 360 + 360) % 360 - 180).toFixed(3) }}°</small>
-          </template>
+          <p v-else class="sr-only">{{ guess ? 'Ton repère est placé. Prêt à valider ?' : 'Place ton repère sur la carte.' }}</p>
           <p v-if="error" class="alert" role="alert">{{ showResult && !xpSaved ? 'XP non enregistrés : ' : '' }}{{ error }}</p>
-          <button v-if="showResult" type="button" class="btn btn-primary btn-lg btn-block" :disabled="validating || loading" @click="nextQuestion">Question suivante <ArrowRight :size="18" /></button>
-          <button v-else type="button" class="btn btn-primary btn-lg btn-block" :disabled="!guess || !current || loading || validating" @click="validateGuess"><span v-if="validating" class="spinner" /><Check v-else :size="19" />{{ validating ? 'Validation…' : 'Valider' }}<kbd class="enter-hint">↵</kbd></button>
+          <button v-if="showResult" type="button" class="btn btn-primary" :disabled="validating || loading" @click="nextQuestion">Question suivante <ArrowRight :size="17" /></button>
+          <button v-else type="button" class="btn btn-primary" :disabled="!guess || !current || loading || validating" @click="validateGuess"><span v-if="validating" class="spinner" /><Check v-else :size="17" />{{ validating ? 'Validation…' : 'Valider' }}</button>
         </section>
       </Transition>
     </div>
@@ -346,9 +346,9 @@ onBeforeUnmount(() => {
 .help-menu { right: 0; width: 250px; font-size: 13px; }
 .help-menu a:hover { color: var(--primary); }
 .borders-switch { display: flex; align-items: center; gap: 5px; padding-inline: 4px; font-size: 12px; color: var(--muted); cursor: pointer; }
-.history-shortcut { position: relative; }
-.history-shortcut img { width: 22px; height: 22px; border-radius: 7px; object-fit: cover; }
-.history-shortcut span { position: absolute; bottom: -5px; right: -5px; border-radius: 4px; font-size: 7px; font-weight: 750; background: var(--primary); color: white; padding: 0 3px; }
+.action-shortcuts { left: 12px; bottom: 26px; display: grid; gap: 4px; padding: 4px; background: #fffffff0; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-sm); }
+.action-shortcuts button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--primary-strong); }
+.action-shortcuts button:hover:not(:disabled) { background: var(--primary-soft); }
 .theme-row { gap: 8px; }
 .theme-strip { display: flex; flex: 1; min-width: 0; gap: 5px; overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
 .theme-strip::-webkit-scrollbar { display: none; }
@@ -371,12 +371,11 @@ onBeforeUnmount(() => {
 .question-heading img { max-height: 48px; width: 56px; object-fit: contain; border-radius: 8px; flex-shrink: 0; }
 .details-label { color: var(--primary-strong); display: inline-flex; gap: 4px; align-items: center; }
 .shortcut-error { left: 12px; top: 12px; max-width: min(400px, calc(100% - 24px)); z-index: 720; }
-.quiz-action { right: 16px; bottom: 26px; width: min(360px, calc(100% - 32px)); }
-.action-card { padding: 14px; display: grid; gap: 10px; }
-.guess-hint { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); }
-.guess-hint svg { color: var(--primary); }
-.coordinates { padding-left: 27px; font-variant-numeric: tabular-nums; }
-.enter-hint { margin-left: auto; border: 1px solid #ffffff65; border-radius: 5px; font-size: 13px; padding: 0 5px; }
+.quiz-action { left: 50%; bottom: 26px; transform: translateX(-50%); width: min(360px, calc(100% - 120px)); }
+.action-card { display: grid; justify-items: center; gap: 8px; pointer-events: auto; }
+.action-card > .btn { min-width: 132px; min-height: 40px; max-width: 100%; padding: 9px 18px; border-radius: 8px; }
+.action-card.is-result { padding: 12px; background: #fffffff5; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-sm); }
+.action-card.is-result > *, .action-card > .alert { width: 100%; }
 .result-label { margin-bottom: 0; }
 .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .result-stats > div { display: flex; flex-direction: column; gap: 1px; }
@@ -404,7 +403,7 @@ onBeforeUnmount(() => {
   .header-row { gap: 6px; }
   .header-stats, .header-modes, .header-tools, .theme-tools { gap: 4px; }
   .header-modes { padding-left: 6px; }
-  .desktop-label, .borders-switch { display: none; }
+  .desktop-label, .header-modes { display: none; }
   .header-stats .badge { padding: 3px 7px; font-size: 11px; }
   .guest-pill summary { padding: 3px 6px; }
   .header-modes .icon-button.sm, .header-tools .icon-button.sm { width: 30px; height: 30px; }
@@ -418,10 +417,9 @@ onBeforeUnmount(() => {
   .question-heading strong { font-size: 13px; }
   .question-heading img { width: 38px; max-height: 40px; }
   .question-meta { font-size: 10px; }
-  .quiz-action { left: 8px; right: 8px; bottom: 16px; width: auto; }
-  .action-card { padding: 10px 12px; gap: 8px; border-radius: 16px; }
-  .guess-hint { font-size: 12px; }
-  .coordinates { display: none; }
+  .quiz-action { bottom: 20px; }
+  .action-shortcuts { left: 8px; bottom: 20px; }
+  .action-shortcuts button { width: 40px; height: 40px; }
   .result-stats strong { font-size: 22px; }
   .result-badges { gap: 4px; }
   .question-backdrop { padding: 0; }
@@ -433,6 +431,6 @@ onBeforeUnmount(() => {
 }
 @media (max-height: 650px) {
   .question-heading strong { -webkit-line-clamp: 1; }
-  .action-card { gap: 7px; padding: 10px; }
+  .action-card.is-result { gap: 7px; padding: 10px; }
 }
 </style>

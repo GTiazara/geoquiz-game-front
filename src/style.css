@@ -199,6 +199,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .xp-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); color: #92400e; font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 main.page { padding: 32px 32px 28px; width: 100%; max-width: 1320px; margin: 0 auto; flex: 1; }
 main.page-immersive { padding: 0; flex: 1; position: relative; display: flex; flex-direction: column; min-height: 0; height: calc(100dvh - var(--topbar-h)); }
+main.page-immersive.page-flowing { height: auto; min-height: calc(100dvh - var(--topbar-h)); }
 .page-footer { text-align: center; font-size: 12px; color: var(--muted); padding: 20px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
 .page-footer a:hover { color: var(--primary-strong); }
 .mobile-nav, .mobile-brand { display: none; }
