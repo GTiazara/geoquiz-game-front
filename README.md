@@ -52,6 +52,20 @@ Le workflow [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.
 
 Le build utilise le routage par hash (`/#/geobattle/abc`) : aucun `404.html` n’est nécessaire et les liens profonds fonctionnent.
 
+### Domaine personnalise
+
+Le domaine de ce projet est `geopinpoint2.skippylab.com`, declare dans `public/CNAME`.
+Dans **Settings > Pages > Custom domain**, renseigner ce meme domaine et activer HTTPS.
+Le workflow utilise alors `VITE_BASE_PATH=/` : les fichiers sont publies sous `/assets/`,
+pas sous `/geoquiz-game-front/assets/`. Sans `CNAME`, le workflow utilise la variable Actions
+`VITE_BASE_PATH` si elle existe, sinon le chemin fourni par GitHub Pages.
+
+Apres un changement de domaine ou de chemin, relancer le workflow **Deploy frontend to GitHub Pages**.
+Si le navigateur utilise encore une ancienne PWA, desinscrire son service worker et vider uniquement
+son cache de fichiers, puis recharger. Ne pas effacer les cookies ni le stockage local : ils peuvent
+encore identifier un ancien compte. Une erreur MIME `text/html` sur un fichier JavaScript accompagnee
+d'un 404 indique une URL de ressource incorrecte, pas un probleme de compression du JavaScript.
+
 ## Autres hébergeurs
 
 `dist/` est un site statique : Netlify, Vercel, Cloudflare Pages, nginx…

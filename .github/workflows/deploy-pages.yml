@@ -34,9 +34,17 @@ jobs:
         shell: bash
         env:
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          BASE_PATH_OVERRIDE: ${{ vars.VITE_BASE_PATH }}
         run: |
-          # Domaine personnalisé : racine ; domaine github.io : chemin du projet.
-          echo "VITE_BASE_PATH=${PAGES_BASE_PATH%/}/" >> "$GITHUB_ENV"
+          if [[ -s public/CNAME ]]; then
+            BASE_PATH="/"
+          elif [[ -n "$BASE_PATH_OVERRIDE" ]]; then
+            BASE_PATH="$BASE_PATH_OVERRIDE"
+          else
+            BASE_PATH="${PAGES_BASE_PATH%/}/"
+          fi
+          echo "VITE_BASE_PATH=${BASE_PATH%/}/" >> "$GITHUB_ENV"
+          echo "Frontend asset base: ${BASE_PATH%/}/"
       - name: Validate production API URL
         run: |
           node --input-type=module <<'JS'
@@ -54,6 +62,25 @@ jobs:
           VITE_API_BASE_URL: /api
           VITE_ROUTER_MODE: history
       - run: npm run build
+      - name: Validate published asset paths
+        run: |
+          node --input-type=module <<'JS'
+          import { existsSync, readFileSync } from 'node:fs';
+          import { resolve } from 'node:path';
+          import { JSDOM } from 'jsdom';
+          const base = process.env.VITE_BASE_PATH;
+          const origin = 'https://build.invalid';
+          const document = new JSDOM(readFileSync('dist/index.html', 'utf8')).window.document;
+          for (const element of document.querySelectorAll('[src], link[href]')) {
+            const value = element.getAttribute('src') ?? element.getAttribute('href');
+            const url = new URL(value, origin + base);
+            if (url.origin !== origin) continue;
+            if (!url.pathname.startsWith(base)) throw new Error(`Asset outside deployment base: ${url.pathname}`);
+            const file = resolve('dist', decodeURIComponent(url.pathname.slice(base.length)));
+            if (!existsSync(file)) throw new Error(`Missing published asset: ${url.pathname}`);
+          }
+          console.log(`Published assets verified for base ${base}`);
+          JS
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
