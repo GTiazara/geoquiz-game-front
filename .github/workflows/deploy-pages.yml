@@ -1,0 +1,73 @@
+name: Deploy frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Settings > Secrets and variables > Actions > Variables
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      VITE_MATOMO_URL: ${{ vars.VITE_MATOMO_URL }}
+      VITE_MATOMO_SITE_ID: ${{ vars.VITE_MATOMO_SITE_ID }}
+      VITE_ROUTER_MODE: hash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Read GitHub Pages configuration
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Configure Pages asset path
+        shell: bash
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          # Domaine personnalisé : racine ; domaine github.io : chemin du projet.
+          echo "VITE_BASE_PATH=${PAGES_BASE_PATH%/}/" >> "$GITHUB_ENV"
+      - name: Validate production API URL
+        run: |
+          node --input-type=module <<'JS'
+          const value = process.env.VITE_API_BASE_URL;
+          if (!value) throw new Error('Configure repository variable VITE_API_BASE_URL with your public HTTPS backend URL ending in /api.');
+          const url = new URL(value);
+          if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || !/\/api\/?$/.test(url.pathname) || /localhost|127\.0\.0\.1|votre-domaine|exemple\./i.test(url.hostname)) {
+            throw new Error('VITE_API_BASE_URL must be a real public HTTPS API URL ending in /api, without credentials.');
+          }
+          JS
+      - run: npm ci
+      - name: Unit tests
+        run: npm test
+        env:
+          VITE_API_BASE_URL: /api
+          VITE_ROUTER_MODE: history
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

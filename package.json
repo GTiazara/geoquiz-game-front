@@ -1,0 +1,40 @@
+{
+  "name": "geoquiz-game-front",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Front Vue 3 de GeoPinpoint — quiz géographique sur carte (déployable sur GitHub Pages).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "icons": "node scripts/generate-pwa-icons.mjs"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "lucide-vue-next": "^1.0.0",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^22.20.5",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/test-utils": "^2.5.1",
+    "jsdom": "^29.1.1",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.5",
+    "vue-tsc": "^3.3.13",
+    "workbox-window": "^7.4.1"
+  }
+}

@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.skippylab.geopinpoint.twa",
+        "sha256_cert_fingerprints": ["F5:4E:5D:FE:90:FC:1B:25:94:C6:DF:EA:DB:AC:24:46:77:A1:FA:05:7E:A6:9E:E4:80:04:1B:15:83:E5:6F:4A"]
+      }
+    }]

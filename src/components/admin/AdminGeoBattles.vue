@@ -1,0 +1,17 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { appUrl } from '$lib/appUrl'
+import AdminBattleResult from './AdminBattleResult.vue'
+import { useAdminDashboard } from '../../composables/adminDashboard'
+const { data, busy, mutate, ask, createBattle } = useAdminDashboard()
+const search = ref(''), origin = ref('all'), questionId = ref('')
+const battles = computed(() => data.value.geoBattles.filter(b => `${b.themeName} ${b.questionText} ${b.creatorName} ${b.id}`.toLowerCase().includes(search.value.toLowerCase()) && (origin.value === 'all' || (origin.value === 'daily' && b.isDaily) || (origin.value === 'actu' && b.isActuSystemCreated) || (origin.value === 'admin' && b.isAdminCreated) || (origin.value === 'user' && b.isUserCreated))))
+const publishedQuestions = computed(() => data.value.questions.filter(q => q.approved))
+</script>
+<template>
+  <section class="surface panel stack"><h2>Géobattles</h2><p class="subtle">Défis quotidiens, Actualité, administrateurs et joueurs. La suppression efface aussi tous les scores associés.</p>
+    <form class="actions" @submit.prevent="createBattle(questionId)"><label class="field" style="flex:1"><span class="field-label">Créer un défi depuis une question publiée (filtre de thème courant)</span><select v-model="questionId" required><option value="">Choisir une question</option><option v-for="q in publishedQuestions" :key="q.id" :value="q.id">{{ q.text }}</option></select></label><button type="submit" class="btn btn-primary" :disabled="busy || !questionId">Créer un géobattle</button></form><AdminBattleResult />
+    <div class="grid"><label class="field"><span class="field-label">Rechercher</span><input v-model="search" type="search" placeholder="Question, thème, créateur ou identifiant" /></label><label class="field"><span class="field-label">Origine</span><select v-model="origin"><option value="all">Toutes</option><option value="daily">Quotidien</option><option value="actu">Actualité</option><option value="admin">Administration</option><option value="user">Joueur</option></select></label></div>
+    <div class="table-wrap"><table class="table"><thead><tr><th>Type</th><th>Thème</th><th>Question</th><th>Créateur</th><th>Création</th><th>Actions</th></tr></thead><tbody><tr v-for="battle in battles" :key="battle.id"><td><span class="badge" :class="battle.isDaily ? 'warn' : 'neutral'">{{ battle.isDaily ? 'Quotidien' : battle.isActuSystemCreated ? 'Actualité' : battle.isAdminCreated ? 'Admin' : battle.isUserCreated ? 'Joueur' : 'Système' }}</span></td><td>{{ battle.themeName }}</td><td>{{ battle.questionText }}<p class="subtle mono">{{ battle.id }}</p></td><td>{{ battle.creatorName }}<span v-if="battle.creatorIsGuest" class="badge warn">Visiteur</span></td><td>{{ new Date(battle.createdAt).toLocaleString('fr-FR') }}</td><td><div class="actions"><RouterLink :to="'/geobattle/' + battle.id" class="btn btn-sm btn-secondary">Ouvrir</RouterLink><a :href="appUrl('/geobattle/' + battle.id)" class="btn btn-sm btn-ghost" target="_blank" rel="noopener">Lien de partage ↗</a><button type="button" class="btn btn-sm btn-danger-ghost" :disabled="busy" @click="ask('Supprimer ce géobattle et tous ses scores ?', () => mutate('geo-battles/delete', { battleId: battle.id }, 'Géobattle supprimé.'))">Supprimer</button></div></td></tr></tbody></table></div><p v-if="!battles.length" class="empty">Aucun géobattle correspondant.</p>
+  </section>
+</template>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="GeoPinpoint" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="icon" type="image/png" href="/icons/logo.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/linuxguist/google-translate@main/google-translate-xxviii.css" />
+    <title>GeoPinpoint — quiz géographique</title>
+    <meta
+      name="description"
+      content="Place la réponse sur une carte sans toponymes ni autres labels, gagne de l’XP et enrichis les thèmes avec la communauté."
+    />
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="google_translate_element" class="gp-google-translate-element notranslate" translate="no"></div>
+    <script>
+      /* Démarrage Google Translate : attend que l’app Vue soit montée (window.__gpAppReady). */
+      function googleTranslateElementInit() {
+        function runBoot() {
+          if (runBoot.done) return
+          runBoot.done = true
+          try {
+            delete window.__gpPendingGoogleTranslateBoot
+          } catch (e) {}
+          ;(function reassertGoogTransCookie() {
+            var m = document.cookie.match(/(?:^|; )googtrans=([^;]+)/)
+            if (!m) return
+            var v = decodeURIComponent(m[1].trim())
+            if (!v) return
+            var maxAge = 'max-age=' + String(60 * 60 * 24 * 400)
+            var secure = location.protocol === 'https:' ? ';Secure' : ''
+            var tail = 'path=/;' + maxAge + ';SameSite=Lax' + secure
+            document.cookie = 'googtrans=' + v + ';' + tail
+            var host = location.hostname
+            if (host && host.indexOf('www.') === 0 && host.length > 4) {
+              var rest = host.substring(4)
+              if (rest.indexOf('.') !== -1) document.cookie = 'googtrans=' + v + ';' + tail + ';domain=.' + rest
+            }
+          })()
+          /* Sans cookie googtrans (retour FR) : ne pas monter le widget. */
+          if (!document.cookie.match(/(?:^|; )googtrans=([^;]+)/)) return
+          new google.translate.TranslateElement(
+            {
+              pageLanguage: 'fr',
+              includedLanguages: 'en,fr,es,de,zh-CN,ja,ar',
+              layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+              autoDisplay: false,
+            },
+            'google_translate_element',
+          )
+        }
+        runBoot.done = false
+        if (window.__gpAppReady) {
+          queueMicrotask(runBoot)
+        } else {
+          window.__gpPendingGoogleTranslateBoot = runBoot
+          window.setTimeout(function () {
+            if (!runBoot.done) runBoot()
+          }, 8000)
+        }
+      }
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+    <script async src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  </body>
+</html>

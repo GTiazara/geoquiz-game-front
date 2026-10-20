@@ -1,0 +1,33 @@
+.geo-map, .admin-theme-q-map, .admin-gj-preview {
+ width: 100%; min-height: 180px; border: 1px solid var(--border, #e2e8f0);
+ border-radius: 12px; overflow: hidden; background: #e2e8f0;
+}
+.geo-map { height: 100%; flex: 1; }
+.admin-theme-q-map { height: min(48vh, 440px); min-height: 220px; }
+.admin-gj-preview { height: min(42vh, 320px); min-height: 200px; }
+.preview-error { color: #b45309; }
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-control-layers,
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-control-scale,
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-control-attribution {
+ background: #fffffff2 !important; color: #334155 !important; border-color: #e2e8f0 !important;
+}
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-control-scale-line { color: #334155 !important; }
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-popup-content-wrapper,
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-popup-tip {
+ background: white !important; color: #334155 !important; border-color: #e2e8f0 !important;
+ box-shadow: 0 8px 30px #0f172a1a !important;
+}
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-bar button,
+:is(.geo-map, .admin-theme-q-map, .admin-gj-preview) .leaflet-bar a {
+ background: white; color: #0f766e;
+}
+.geo-map :is(.gp-correction-popup__media-update, .gp-correction-popup__proposal-send, .gp-correction-popup__close) {
+ background: #0d9488 !important; color: white !important; border-color: #0d9488 !important;
+}
+.geo-map :is(.gp-correction-popup__media-toggle, .gp-correction-popup__proposal-toggle) {
+ color: #0f766e !important; background: #f0fdfa !important;
+}
+.geo-map :is(.gp-correction-popup__media-panel, .gp-correction-popup__proposal-panel)[hidden] { display: none !important; }
+.geo-map .gp-voyager-overlay-ctl__btn--active { background: #ccfbf1 !important; color: #0f766e !important; }
+.geo-map :is(input, textarea) { background: white !important; color: #334155 !important; border-color: #cbd5e1 !important; }
+.geo-map .gp-story-penguin-wrap img { object-fit: cover; }
