@@ -60,6 +60,7 @@ function pickAdventure(id: string) {
 }
 function restartAdventure() { stepIndex.value = 0; challengeDoneByStep.value = {}; resetChallenge() }
 function nextStep() { if (!validateBusy.value && currentStepChallengeDone.value && !isFinished.value) stepIndex.value++ }
+/** Enregistre une tentative de défi histoire et marque l’étape comme terminée après succès. */
 async function validateChallenge() {
   const step = activeStep.value; const adventure = activeAdventure.value; const guess = challengeGuess.value
   if (!step || !adventure || !guess || challengeShowResult.value || validateBusy.value || !challengeGuessInZone.value) return

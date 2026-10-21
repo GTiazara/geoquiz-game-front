@@ -27,6 +27,7 @@ function pointInRing(lng: number, lat: number, ring: number[][]): boolean {
 	return inside;
 }
 
+/** Vérifie l’anneau extérieur puis exclut les trous du polygone. */
 function pointInPolygonCoords(lng: number, lat: number, rings: number[][][]): boolean {
 	if (!Array.isArray(rings) || rings.length === 0) return false;
 	if (!pointInRing(lng, lat, rings[0])) return false;
@@ -55,6 +56,7 @@ export function isPointInAnswerArea(
 	return false;
 }
 
+/** Valide les coordonnées d’un anneau avant de les utiliser comme géométrie. */
 function isFiniteRing(ring: unknown): ring is number[][] {
 	if (!Array.isArray(ring) || ring.length < 3) return false;
 	for (const p of ring) {
@@ -145,6 +147,7 @@ export function parseGeometryLike(geom: unknown): QuestionAnswerArea | undefined
 	return undefined;
 }
 
+/** Compte tous les sommets, y compris ceux des anneaux intérieurs. */
 export function countVerticesInAnswerArea(area: QuestionAnswerArea): number {
 	let n = 0;
 	if (area.type === 'Polygon') {
@@ -195,6 +198,7 @@ function polygonPartsFromAnswerArea(area: QuestionAnswerArea): number[][][][] {
 	return [area.coordinates];
 }
 
+/** Regroupe plusieurs surfaces en une géométrie MultiPolygon unique. */
 function mergeAnswerAreas(areas: QuestionAnswerArea[]): QuestionAnswerArea | undefined {
 	const parts: number[][][][] = [];
 	for (const area of areas) {

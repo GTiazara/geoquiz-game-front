@@ -39,6 +39,7 @@ export function useGameQuiz(activeThemeId: Readonly<{ value: string }>) {
   const enriching = new Set<string>()
   const correctionRetries = new Set<string>()
 
+  /** Met à jour une question sans perdre sa géométrie déjà chargée à la demande. */
   function updateQuestion(q: Question) {
     const previous = questions.value.find(item => item.id === q.id)
     const updated = { ...q, ...(q.hasAnswerArea && !q.answerArea && previous?.answerArea ? { answerArea: previous.answerArea, hasAnswerArea: undefined } : {}) }
@@ -53,6 +54,7 @@ export function useGameQuiz(activeThemeId: Readonly<{ value: string }>) {
     deckSize.value = 0
   }
 
+  /** Charge la zone détaillée uniquement au besoin et partage la requête si elle est déjà en cours. */
   async function hydrate(q: Question): Promise<Question> {
     if (!q.hasAnswerArea || q.answerArea) return q
     let request = hydration.get(q.id)
@@ -71,6 +73,7 @@ export function useGameQuiz(activeThemeId: Readonly<{ value: string }>) {
     return request
   }
 
+  /** Pioche dans un paquet mélangé pour éviter les répétitions avant la fin du tour. */
   function pickRandom() {
     correctionRetries.clear()
     streakHud.value = null
@@ -112,6 +115,7 @@ export function useGameQuiz(activeThemeId: Readonly<{ value: string }>) {
     catch (e) { if (!disposed && current.value?.id === q.id) error.value = errorMessage(e) }
   }
 
+  /** Recharge les questions du thème et ignore toute réponse devenue obsolète. */
   async function loadQuestions(themeId: string, startNewRound: boolean) {
     const seq = ++loadSeq
     loadController?.abort()
@@ -137,6 +141,7 @@ export function useGameQuiz(activeThemeId: Readonly<{ value: string }>) {
     } finally { if (!disposed && seq === loadSeq) loading.value = false }
   }
 
+  /** Calcule le résultat, l’enregistre côté serveur et rafraîchit l’état XP du joueur. */
   async function validateGuess() {
     if (!current.value || !guess.value || showResult.value || validating.value || loading.value) return
     validating.value = true

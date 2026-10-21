@@ -102,6 +102,7 @@ let tickTimer: ReturnType<typeof setInterval> | undefined
 let backupTimer: ReturnType<typeof setInterval> | undefined
 let leaderboardTimer: ReturnType<typeof setInterval> | undefined
 
+/** Actualise le classement sans appliquer une réponse reçue pour une autre manche. */
 async function refreshLeaderboard() {
   const roundKey = lastRoundKey
   const roundIndex = limited.value?.phase === 'reveal' ? questionIndex.value : undefined
@@ -110,6 +111,7 @@ async function refreshLeaderboard() {
     if (!disposed && roundKey === lastRoundKey) leaderboard.value = result.rows ?? []
   } catch { /* The room refresh will retry the ranking after a temporary network failure. */ }
 }
+/** Projette l’état serveur dans la manche en cours et réinitialise les choix si elle change. */
 function applyPayload(payload: BattlePayload) {
   const key = `${payload.questionIndex ?? 0}:${payload.question?.id ?? payload.limited?.phase ?? ''}`
   if (key !== lastRoundKey) {
@@ -134,6 +136,7 @@ function applyPayload(payload: BattlePayload) {
     lockedTimeSec.value = payload.myAttempt.timeSec
   }
 }
+/** Sérialise les rafraîchissements réseau et rejoue une mise à jour arrivée en cours de chargement. */
 async function loadBattle(silent = false): Promise<void> {
   if (disposed) return
   if (loadingRequest) { reloadQueued = true; await loadingRequest; return }
@@ -186,6 +189,7 @@ onBeforeUnmount(() => {
   disposed = true; abort.abort(); events?.close(); clearTimeout(eventsDebounce)
   clearInterval(tickTimer); clearInterval(backupTimer); clearInterval(leaderboardTimer)
 })
+/** Envoie la position et le temps de réponse puis synchronise le résultat de la manche. */
 async function submitRound() {
   if (!interactive.value || !guess.value || submitBusy.value) return
   submitBusy.value = true; actionErr.value = ''

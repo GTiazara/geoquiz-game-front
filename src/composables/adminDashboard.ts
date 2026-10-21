@@ -18,6 +18,7 @@ export type AdminDashboard = {
 }
 type Confirmation = { description: string; action: () => Promise<unknown> }
 
+/** Centralise l’état, l’authentification et les actions partagées des vues d’administration. */
 export function createAdminDashboard() {
   const route = useRoute(), router = useRouter()
   const configured = ref(true), authed = ref(false), checking = ref(true), loading = ref(false), busy = ref(false)
@@ -34,6 +35,7 @@ export function createAdminDashboard() {
     clearTimeout(toastTimer)
     toastTimer = setTimeout(() => { notice.value = '' }, 4500)
   }
+  /** Ferme la session d’administration locale si l’API signale un jeton expiré. */
   function handleError(err: unknown) {
     if (err instanceof ApiError && err.status === 401) {
       setAdminToken(null); authed.value = false; confirmation.value = null
@@ -41,6 +43,7 @@ export function createAdminDashboard() {
     }
     error.value = errorMessage(err)
   }
+  /** Protège l’état du tableau de bord contre les réponses d’un chargement précédent. */
   async function load() {
     const version = ++requestVersion
     loading.value = true
@@ -81,6 +84,7 @@ export function createAdminDashboard() {
       await refreshApp().catch(handleError)
     }
   }
+  /** Centralise les mutations admin et synchronise ensuite les données globales. */
   async function mutate<T = { ok: boolean }>(path: string, body?: unknown, message = 'Modification enregistrée.', rawBody?: string): Promise<T | undefined> {
     if (busy.value) return
     busy.value = true; error.value = ''

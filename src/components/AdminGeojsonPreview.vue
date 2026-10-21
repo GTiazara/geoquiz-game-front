@@ -100,6 +100,7 @@
 		}
 	}
 
+	/** Parse le GeoJSON fourni et reconstruit ses couches de prévisualisation sur la carte. */
 	function applyGeojson() {
 		if (!map || !Lref) return;
 		const L = Lref;
