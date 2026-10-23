@@ -29,7 +29,7 @@ const themeXp = computed(() => Math.round(activeThemeId.value === MIX_THEME_ID ?
 const isGuest = computed(() => app.player?.isGuest === true)
 const { current, guess, showResult, loading, validating, error, lastXp, xpSaved, lastDist, inBuffer, lastInsideAnswerArea, streak, deckPosition, deckSize, nextQuestion, validateGuess, updateQuestion, reload } = useGameQuiz(activeThemeId)
 const headingTheme = computed(() => activeThemeId.value === MIX_THEME_ID && current.value ? app.themes.find(t => t.id === current.value?.themeId) ?? activeTheme.value : activeTheme.value)
-const quizThemeShareUrl = computed(() => appUrl(router.resolve({ path: '/', query: { ...route.query, theme: activeThemeId.value === defaultThemeId.value ? undefined : activeThemeId.value } }).fullPath))
+const quizThemeShareUrl = computed(() => appUrl(router.resolve({ path: '/geopinpoint', query: { ...route.query, theme: activeThemeId.value === defaultThemeId.value ? undefined : activeThemeId.value } }).fullPath))
 const boardOpen = ref(false)
 const boardThemeId = ref('')
 const themeModal = ref(false)
@@ -77,7 +77,7 @@ watch([() => route.query.theme, () => app.themes], () => {
 async function pickTheme(themeId: string) {
   if (validating.value) return
   quizThemePick.value = themeId
-  await router.replace({ path: '/', query: { ...route.query, theme: themeId === defaultThemeId.value ? undefined : themeId } })
+  await router.replace({ path: '/geopinpoint', query: { ...route.query, theme: themeId === defaultThemeId.value ? undefined : themeId } })
 }
 async function selectBrowserTheme(themeId: string) {
   await pickTheme(themeId)
