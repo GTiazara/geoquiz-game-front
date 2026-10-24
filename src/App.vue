@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-import { BookOpen, LayoutGrid, MapPinned, RefreshCw, SquarePen, Swords, UserRound, Users, Sparkles } from 'lucide-vue-next'
+import { BookOpen, ChevronDown, Home, Layers, LayoutGrid, MapPinned, RefreshCw, Sparkles, SquarePen, Swords, UserRound, Users } from 'lucide-vue-next'
 import { app, isRegistered, refreshApp } from '$lib/appStore'
 import { asset } from '$lib/appUrl'
 import { initMatomo, trackPageView } from '$lib/matomo'
@@ -17,8 +17,13 @@ import {
 const route = useRoute()
 const router = useRouter()
 
+const games = [
+  { to: '/', label: 'Accueil', detail: 'Catalogue des quiz', icon: Home },
+  { to: '/geopinpoint', label: 'GeoPinpoint', detail: 'Quiz sur carte muette', icon: MapPinned },
+  { to: '/flashcards', label: 'Flashcards', detail: 'Quatre réponses, puis le verso', icon: Layers },
+]
 const nav = computed(() => [
-  { to: '/', label: 'Jouer', icon: MapPinned },
+  { to: '/geopinpoint', label: 'Jouer', icon: MapPinned },
   { to: '/themes', label: 'Thèmes', icon: LayoutGrid },
   { to: '/geobattle', label: 'Geobattle', icon: Swords },
   { to: '/histoire', label: 'Histoire', icon: BookOpen },
@@ -26,6 +31,12 @@ const nav = computed(() => [
   { to: '/communaute', label: 'Communauté', icon: Users, count: app.pendingModerationCount },
 ])
 const mobileNav = computed(() => [nav.value[0]!, nav.value[1]!, nav.value[2]!, nav.value[3]!, { to: '/compte', label: 'Compte', icon: UserRound }])
+const catalog = computed(() => route.meta.catalog === true)
+const flashGame = computed(() => route.meta.game === 'flash')
+const shellClass = computed(() => catalog.value ? 'catalog' : flashGame.value ? 'flash' : 'geopinpoint')
+const currentGame = computed(() => games.find(game => game.to !== '/' && (route.path === game.to || route.path.startsWith(`${game.to}/`))) ?? games[1]!)
+const gameMenuOpen = ref(false)
+const gameMenuRoot = ref<HTMLElement>()
 
 const immersive = computed(() => Boolean(route.meta.immersive))
 const flowing = computed(() => Boolean(route.meta.flowing))
@@ -40,7 +51,8 @@ function isActive(to: string): boolean {
   return route.path === to || route.path.startsWith(`${to}/`)
 }
 
-watch([immersive, flowing], ([fullScreen, scrollable]) => document.documentElement.classList.toggle('gp-quiz-viewport-lock', fullScreen && !scrollable), { immediate: true })
+watch([immersive, flowing, catalog], ([fullScreen, scrollable, showcase]) => document.documentElement.classList.toggle('gp-quiz-viewport-lock', fullScreen && !scrollable && !showcase), { immediate: true })
+watch(() => route.fullPath, () => { gameMenuOpen.value = false })
 
 let stopFloatUi: (() => void) | null = null
 const resetTimers: number[] = []
@@ -68,6 +80,8 @@ onMounted(() => {
     void import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }))
   }
   initMatomo()
+  document.addEventListener('pointerdown', onPointerDown, true)
+  window.addEventListener('keydown', onKeydown)
 })
 
 let firstNav = true
@@ -85,17 +99,26 @@ router.afterEach(() => {
   }, 180)
 })
 
+function onPointerDown(event: PointerEvent) {
+  if (event.target instanceof Node && !gameMenuRoot.value?.contains(event.target)) gameMenuOpen.value = false
+}
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') gameMenuOpen.value = false
+}
+
 onBeforeUnmount(() => {
   stopFloatUi?.()
   for (const id of resetTimers) clearTimeout(id)
+  document.removeEventListener('pointerdown', onPointerDown, true)
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 
 <template>
   <a class="skip-link" href="#main-content">Aller au contenu</a>
 
-  <aside class="sidebar" aria-label="Navigation principale">
-    <RouterLink to="/" class="brand">
+  <aside v-if="!catalog && !flashGame" class="sidebar" aria-label="Navigation principale">
+    <RouterLink to="/geopinpoint" class="brand">
       <img :src="asset('icons/logo.png')" alt="" />
       <span>Geo<span class="brand-accent">Pinpoint</span></span>
     </RouterLink>
@@ -131,15 +154,23 @@ onBeforeUnmount(() => {
     </div>
   </aside>
 
-  <div class="app-content">
-    <header class="topbar">
+  <div class="app-content" :class="shellClass">
+    <header v-if="!catalog" class="topbar">
       <div class="topbar-left">
-        <RouterLink to="/" class="mobile-brand brand">
-          <img :src="asset('icons/logo.png')" alt="" />
-          <span>Geo<span class="brand-accent">Pinpoint</span></span>
-        </RouterLink>
+        <div ref="gameMenuRoot" class="game-menu">
+          <button type="button" class="game-menu-button" :aria-expanded="gameMenuOpen" aria-haspopup="menu" @click="gameMenuOpen = !gameMenuOpen">
+            <component :is="currentGame.icon" :size="16" aria-hidden="true" />
+            <span>{{ currentGame.label }}</span>
+            <ChevronDown :size="14" aria-hidden="true" />
+          </button>
+          <div v-if="gameMenuOpen" class="game-menu-panel surface" role="menu">
+            <RouterLink v-for="game in games" :key="game.to" :to="game.to" role="menuitem" :class="{ current: game.to === '/' ? false : currentGame.to === game.to }" @click="gameMenuOpen = false">
+              <component :is="game.icon" :size="16" aria-hidden="true" />
+              <span><strong>{{ game.label }}</strong><small>{{ game.detail }}</small></span>
+            </RouterLink>
+          </div>
+        </div>
         <div class="breadcrumb">
-          <span>GeoPinpoint</span>
           <span aria-hidden="true">/</span>
           <strong>{{ route.meta.title }}</strong>
         </div>
@@ -152,7 +183,7 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <main id="main-content" :class="immersive ? { 'page-immersive': true, 'page-flowing': flowing } : 'page'">
+    <main id="main-content" :class="catalog ? 'page-catalog' : immersive ? { 'page-immersive': true, 'page-flowing': flowing } : 'page'">
       <div v-if="!app.ready" class="loading"><span class="spinner" /> Chargement…</div>
       <div v-else-if="app.error && !app.themes.length" class="empty">
         <div class="empty-icon"><RefreshCw :size="26" /></div>
@@ -165,14 +196,14 @@ onBeforeUnmount(() => {
       </RouterView>
     </main>
 
-    <footer v-if="!immersive" class="page-footer">
+    <footer v-if="!catalog && !immersive" class="page-footer">
       <span>© GeoPinpoint</span>
       <RouterLink to="/a-propos">À propos</RouterLink>
       <RouterLink to="/privacy">Confidentialité</RouterLink>
     </footer>
   </div>
 
-  <nav class="mobile-nav" aria-label="Navigation mobile">
+  <nav v-if="!catalog && !flashGame" class="mobile-nav" aria-label="Navigation mobile">
     <RouterLink v-for="item in mobileNav" :key="item.to" :to="item.to" :class="{ active: isActive(item.to) }">
       <component :is="item.icon" :size="20" aria-hidden="true" />
       <span>{{ item.label }}</span>

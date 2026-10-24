@@ -124,7 +124,7 @@ function scrollTo(n: number): void {
     </section>
 
     <div class="actions">
-      <RouterLink to="/" class="btn btn-secondary"><ArrowLeft :size="16" /> Retour au jeu</RouterLink>
+      <RouterLink to="/" class="btn btn-secondary"><ArrowLeft :size="16" /> Retour aux quiz</RouterLink>
       <a :href="`mailto:${CONTACT_EMAIL}`" class="btn btn-primary"><Mail :size="16" /> Nous contacter</a>
     </div>
   </div>

@@ -7,6 +7,6 @@ import { Compass } from 'lucide-vue-next'
     <div class="empty-icon"><Compass :size="28" /></div>
     <h2>Page introuvable</h2>
     <p>Ce lieu n’existe pas sur notre carte.</p>
-    <div class="actions"><RouterLink to="/" class="btn btn-primary">Retour au jeu</RouterLink></div>
+    <div class="actions"><RouterLink to="/" class="btn btn-primary">Retour aux quiz</RouterLink></div>
   </div>
 </template>

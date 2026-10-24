@@ -9,10 +9,11 @@ import AdminModeration from '../components/admin/AdminModeration.vue'
 import AdminGeoBattles from '../components/admin/AdminGeoBattles.vue'
 import AdminImport from '../components/admin/AdminImport.vue'
 import AdminSettings from '../components/admin/AdminSettings.vue'
+import AdminFlashcards from '../components/admin/AdminFlashcards.vue'
 import { createAdminDashboard } from '../composables/adminDashboard'
 const { configured, authed, checking, loading, busy, error, notice, data, pendingCount, confirmation, initialize, logout, load, confirm } = createAdminDashboard()
 const tab = ref('questions')
-const tabs = [ ['questions', 'Questions'], ['themes', 'Thèmes'], ['moderation', 'Modération'], ['users', 'Joueurs'], ['battles', 'Géobattles'], ['import', 'Import GeoJSON'], ['settings', 'Paramètres'] ]
+const tabs = [ ['questions', 'Questions'], ['themes', 'Thèmes'], ['flash', 'Flashcards'], ['moderation', 'Modération'], ['users', 'Joueurs'], ['battles', 'Géobattles'], ['import', 'Import GeoJSON'], ['settings', 'Paramètres'] ]
 </script>
 <template>
   <div class="stack admin-console">
@@ -27,13 +28,14 @@ const tabs = [ ['questions', 'Questions'], ['themes', 'Thèmes'], ['moderation',
     <AdminLogin v-else-if="!authed" />
     <template v-else>
       <div class="stats">
-        <button v-for="stat in [{ label: 'Joueurs', count: data.users.length, key: 'users' }, { label: 'Thèmes', count: data.themes.length, key: 'themes' }, { label: 'Questions', count: data.questions.length, key: 'questions' }, { label: 'En modération', count: pendingCount, key: 'moderation' }, { label: 'Géobattles', count: data.geoBattles.length, key: 'battles' }]" :key="stat.key" type="button" class="surface stat" @click="tab = stat.key"><span class="subtle">{{ stat.label }}</span><strong>{{ stat.count }}</strong></button>
+        <button v-for="stat in [{ label: 'Joueurs', count: data.users.length, key: 'users' }, { label: 'Thèmes', count: data.themes.length, key: 'themes' }, { label: 'Questions', count: data.questions.length, key: 'questions' }, { label: 'Flashcards', count: data.flashCards.length, key: 'flash' }, { label: 'En modération', count: pendingCount, key: 'moderation' }, { label: 'Géobattles', count: data.geoBattles.length, key: 'battles' }]" :key="stat.key" type="button" class="surface stat" @click="tab = stat.key"><span class="subtle">{{ stat.label }}</span><strong>{{ stat.count }}</strong></button>
       </div>
       <div class="between"><nav class="tabs" aria-label="Sections de l’administration"><button v-for="item in tabs" :key="item[0]" type="button" :class="{ active: tab === item[0] }" :aria-current="tab === item[0] ? 'page' : undefined" @click="tab = item[0] ?? 'questions'">{{ item[1] }}<span v-if="item[0] === 'moderation' && pendingCount" class="badge warn">{{ pendingCount }}</span></button></nav><button type="button" class="btn btn-sm btn-ghost" :disabled="loading || busy" @click="load">Actualiser</button></div>
       <p v-if="loading" class="subtle" role="status">Actualisation des données…</p>
       <div :inert="busy || loading || undefined" :aria-busy="busy || loading">
         <AdminQuestions v-if="tab === 'questions'" />
         <AdminThemes v-else-if="tab === 'themes'" @questions="tab = 'questions'" />
+        <AdminFlashcards v-else-if="tab === 'flash'" />
         <AdminModeration v-else-if="tab === 'moderation'" />
         <AdminUsers v-else-if="tab === 'users'" />
         <AdminGeoBattles v-else-if="tab === 'battles'" />
@@ -47,5 +49,5 @@ const tabs = [ ['questions', 'Questions'], ['themes', 'Thèmes'], ['moderation',
   </div>
 </template>
 <style scoped>
-.page-heading { margin-bottom: 0; }.stats { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }.stat { padding: 18px; display: grid; text-align: left; gap: 6px; }.stat strong { font-size: 28px; color: var(--ink); }.tabs { flex: 1; overflow-x: auto; margin: 0; }.tabs button { display: flex; align-items: center; gap: 6px; white-space: nowrap; }@media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:last-child{grid-column:span 2}}
+.page-heading { margin-bottom: 0; }.stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 12px; }.stat { padding: 18px; display: grid; text-align: left; gap: 6px; }.stat strong { font-size: 28px; color: var(--ink); }.tabs { flex: 1; overflow-x: auto; margin: 0; }.tabs button { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 </style>
