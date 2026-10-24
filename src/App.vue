@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
   <a class="skip-link" href="#main-content">Aller au contenu</a>
 
   <aside v-if="!catalog && !flashGame" class="sidebar" aria-label="Navigation principale">
-    <RouterLink to="/geopinpoint" class="brand">
+    <RouterLink to="/" class="brand">
       <img :src="asset('icons/logo.png')" alt="" />
       <span>Geo<span class="brand-accent">Pinpoint</span></span>
     </RouterLink>
@@ -158,9 +158,11 @@ onBeforeUnmount(() => {
     <header v-if="!catalog" class="topbar">
       <div class="topbar-left">
         <div ref="gameMenuRoot" class="game-menu">
-          <button type="button" class="game-menu-button" :aria-expanded="gameMenuOpen" aria-haspopup="menu" @click="gameMenuOpen = !gameMenuOpen">
+          <RouterLink to="/" class="game-home-link" aria-label="Retour à l’accueil">
             <component :is="currentGame.icon" :size="16" aria-hidden="true" />
             <span>{{ currentGame.label }}</span>
+          </RouterLink>
+          <button type="button" class="game-menu-button" aria-label="Changer de jeu" title="Changer de jeu" :aria-expanded="gameMenuOpen" aria-haspopup="menu" @click="gameMenuOpen = !gameMenuOpen">
             <ChevronDown :size="14" aria-hidden="true" />
           </button>
           <div v-if="gameMenuOpen" class="game-menu-panel surface" role="menu">

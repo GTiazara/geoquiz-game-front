@@ -197,8 +197,9 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .breadcrumb { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; min-width: 0; }
 .breadcrumb strong { color: var(--ink); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
-.game-menu { position: relative; }
-.game-menu-button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--ink); font-weight: 700; }
+.game-menu { position: relative; display: flex; align-items: center; }
+.game-home-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding-right: 8px; color: var(--ink); font-weight: 700; white-space: nowrap; }
+.game-menu-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; padding: 6px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--ink); font-weight: 700; }
 .game-menu-button:hover { border-color: var(--border-strong); }
 .game-menu-panel { position: absolute; top: calc(100% + 8px); left: 0; min-width: 260px; padding: 6px; display: grid; z-index: 40; }
 .game-menu-panel a { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; color: inherit; }
