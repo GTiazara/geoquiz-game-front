@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { api, ApiError, errorMessage, setAdminToken } from '$lib/api'
 import { refreshApp } from '$lib/appStore'
 import { appUrl } from '$lib/appUrl'
-import type { AdminPlayerRow, AdminQuestionRow, QuestionEditProposalRow, Theme } from '$lib/types'
+import type { AdminPlayerRow, AdminQuestionRow, FlashCard, FlashDeck, FlashTheme, QuestionEditProposalRow, Theme } from '$lib/types'
 
 export type AdminBattle = {
   id: string; themeId: string; themeName: string; questionId: string; questionText: string
@@ -15,6 +15,9 @@ export type AdminDashboard = {
   geoBattles: AdminBattle[]; pendingNewQuestions: AdminQuestionRow[]; pendingEditProposals: QuestionEditProposalRow[]
   defaultQuizThemeId: string
   communityMinNetVotes: number; communityEditProposalRemoveMinNetDown: number
+  flashThemes: FlashTheme[]
+  flashDecks: FlashDeck[]
+  flashCards: FlashCard[]
 }
 type Confirmation = { description: string; action: () => Promise<unknown> }
 
@@ -23,7 +26,7 @@ export function createAdminDashboard() {
   const route = useRoute(), router = useRouter()
   const configured = ref(true), authed = ref(false), checking = ref(true), loading = ref(false), busy = ref(false)
   const error = ref(''), notice = ref('')
-  const data = ref<AdminDashboard>({ users: [], themes: [], questions: [], geoBattles: [], pendingNewQuestions: [], pendingEditProposals: [], defaultQuizThemeId: '', communityMinNetVotes: 4, communityEditProposalRemoveMinNetDown: 5 })
+  const data = ref<AdminDashboard>({ users: [], themes: [], questions: [], geoBattles: [], pendingNewQuestions: [], pendingEditProposals: [], defaultQuizThemeId: '', communityMinNetVotes: 4, communityEditProposalRemoveMinNetDown: 5, flashThemes: [], flashDecks: [], flashCards: [] })
   const confirmation = ref<Confirmation | null>(null)
   const battleResult = ref<{ battleId: string; shareUrl: string } | null>(null)
   const themeFilter = computed(() => typeof route.query.theme === 'string' ? route.query.theme.trim() : '')
@@ -49,7 +52,7 @@ export function createAdminDashboard() {
     loading.value = true
     try {
       const result = await api<AdminDashboard>('/admin/dashboard', { query: { theme: themeFilter.value } })
-      if (version === requestVersion && authed.value) data.value = result
+      if (version === requestVersion && authed.value) data.value = { ...result, flashThemes: result.flashThemes ?? [], flashDecks: result.flashDecks ?? [], flashCards: result.flashCards ?? [] }
     } catch (err) { if (version === requestVersion) handleError(err) }
     finally { if (version === requestVersion || !authed.value) loading.value = false }
   }

@@ -197,6 +197,16 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .breadcrumb { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; min-width: 0; }
 .breadcrumb strong { color: var(--ink); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
+.game-menu { position: relative; }
+.game-menu-button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--ink); font-weight: 700; }
+.game-menu-button:hover { border-color: var(--border-strong); }
+.game-menu-panel { position: absolute; top: calc(100% + 8px); left: 0; min-width: 260px; padding: 6px; display: grid; z-index: 40; }
+.game-menu-panel a { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; color: inherit; }
+.game-menu-panel a:hover, .game-menu-panel a.current { background: var(--primary-soft); color: var(--primary-strong); }
+.game-menu-panel strong { display: block; font-size: 14px; color: inherit; }
+.game-menu-panel small { display: block; color: var(--muted); font-size: 12px; }
+.app-content.catalog, .app-content.flash { margin-left: 0; }
+main.page-catalog { padding: 0; max-width: none; margin: 0; flex: 1; width: 100%; }
 .xp-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); color: #92400e; font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 main.page { padding: 32px 32px 28px; width: 100%; max-width: 1320px; margin: 0 auto; flex: 1; }
 main.page-immersive { padding: 0; flex: 1; position: relative; display: flex; flex-direction: column; min-height: 0; height: calc(100dvh - var(--topbar-h)); }
@@ -247,6 +257,7 @@ html.gp-quiz-viewport-lock .page-footer { display: none; }
   .mobile-nav a, .mobile-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #64748b; font-size: 10.5px; font-weight: 600; border-radius: 10px; background: none; border: 0; }
   .mobile-nav .router-link-exact-active, .mobile-nav .active { color: var(--primary-strong); background: var(--primary-soft); }
   .page-footer { display: none; }
+  .app-content.flash main.page { padding-bottom: 28px; }
   .page-heading { margin-bottom: 20px; }
   .grid { grid-template-columns: 1fr; gap: 14px; }
   .panel { padding: 18px; }

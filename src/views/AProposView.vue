@@ -127,7 +127,7 @@ const themes = [
     </section>
 
     <div class="actions center">
-      <RouterLink to="/" class="btn btn-primary"><ArrowLeft :size="16" /> Retour au jeu</RouterLink>
+      <RouterLink to="/" class="btn btn-primary"><ArrowLeft :size="16" /> Retour aux quiz</RouterLink>
     </div>
   </div>
 </template>

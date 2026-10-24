@@ -9,7 +9,7 @@ const router = useRouter()
 const search = ref('')
 const rateBusyId = ref<string | null>(null)
 function pickTheme(themeId: string) {
-  void router.push({ path: '/', query: { theme: themeId } })
+  void router.push({ path: '/geopinpoint', query: { theme: themeId } })
 }
 </script>
 

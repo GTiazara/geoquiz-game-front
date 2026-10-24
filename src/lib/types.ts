@@ -100,6 +100,10 @@ export type PlayerRow = {
 	quizFlawlessStreak?: number;
 	/** Record personnel de série sans faute. */
 	quizFlawlessBest?: number;
+	/** XP des flashcards, séparée du classement carte. */
+	flashXpTotal?: number;
+	flashStreak?: number;
+	flashBest?: number;
 };
 
 /** Ligne renvoyée par `/api/leaderboard`. */
@@ -186,6 +190,75 @@ export type DbFile = {
 	geoBattleUserProgress?: GeoBattleUserProgressRow[];
 	/** Notes thème (mode fichier) : un enregistrement par couple themeId + deviceId. */
 	themeRatings?: ThemeRatingRow[];
+	flashThemes?: FlashTheme[];
+	flashDecks?: FlashDeck[];
+	flashCards?: FlashCard[];
+};
+
+/** Thème de flashcards, distinct des thèmes du quiz carte. */
+export type FlashTheme = {
+	id: string;
+	name: string;
+	emoji: string;
+	description?: string;
+	coverImageUrl?: string;
+	approved: boolean;
+	sortOrder?: number;
+	createdAt: string;
+	deckCount?: number;
+};
+
+/** Recto d’une flashcard : un seul média à la fois. */
+export type FlashPrompt =
+	| { kind: 'text'; text: string }
+	| { kind: 'image'; url: string; alt?: string }
+	| { kind: 'video'; url: string }
+	| { kind: 'audio'; url: string };
+
+export type FlashChoice = { id: string; label: string };
+
+export type FlashDeck = {
+	id: string;
+	themeId: string;
+	name: string;
+	emoji: string;
+	description?: string;
+	coverImageUrl?: string;
+	approved: boolean;
+	sortOrder?: number;
+	createdAt: string;
+	cardCount?: number;
+};
+
+export type FlashCard = {
+	id: string;
+	deckId: string;
+	prompt: FlashPrompt;
+	choices: FlashChoice[];
+	correctChoiceId: string;
+	backText: string;
+	approved: boolean;
+	sortOrder?: number;
+	createdAt: string;
+};
+
+/** Carte de jeu : la solution et le verso arrivent seulement après la réponse. */
+export type FlashCardPlay = {
+	id: string;
+	deckId: string;
+	prompt: FlashPrompt;
+	choices: FlashChoice[];
+	sortOrder: number;
+};
+
+export type FlashAnswerResult = {
+	correct: boolean;
+	correctChoiceId: string;
+	backText: string;
+	xp: number;
+	flashXpTotal: number;
+	flashStreak: number;
+	flashBest: number;
 };
 
 /**

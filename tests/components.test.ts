@@ -3,6 +3,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import ThemeStars from '../src/components/ThemeStars.vue'
 import ConfirmDialog from '../src/components/ConfirmDialog.vue'
 import HistoryAdventureCover from '../src/components/HistoryAdventureCover.vue'
+import GoogleTranslateLangBar from '../src/components/GoogleTranslateLangBar.vue'
+import * as googleTranslate from '../src/lib/googleTranslateBrowser'
 import OnboardView from '../src/views/OnboardView.vue'
 import CompteView from '../src/views/CompteView.vue'
 import { api, getAccountToken, resetDeviceId, setAccountToken } from '../src/lib/api'
@@ -17,6 +19,29 @@ vi.mock('../src/lib/appStore', () => {
 })
 
 describe('shared components', () => {
+  it('ouvre les langues et transmet le choix depuis le bouton compact', async () => {
+    const apply = vi.spyOn(googleTranslate, 'applyTranslateUiChoiceWithRetry').mockImplementation(() => {})
+    const wrapper = mount(GoogleTranslateLangBar, { attachTo: document.body, props: { compact: true } })
+    try {
+      const trigger = wrapper.get('button')
+      expect(trigger.attributes('aria-expanded')).toBe('false')
+      await trigger.trigger('click')
+      expect(trigger.attributes('aria-expanded')).toBe('true')
+      const english = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="option"]')).find(option => option.textContent?.includes('English'))!
+      english.click()
+      await wrapper.vm.$nextTick()
+      expect(apply).toHaveBeenCalledWith('en')
+      expect(document.querySelector('[role="listbox"]')).toBeNull()
+      await trigger.trigger('click')
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      await wrapper.vm.$nextTick()
+      expect(trigger.attributes('aria-expanded')).toBe('false')
+    } finally {
+      wrapper.unmount()
+      apply.mockRestore()
+    }
+  })
+
   it('renders a partial amber star average', () => {
     const wrapper = mount(ThemeStars, { props: { avg: 3.5 } })
     expect(wrapper.findAll('button')).toHaveLength(5)
