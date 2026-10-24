@@ -4,6 +4,7 @@ import ThemeStars from '../src/components/ThemeStars.vue'
 import ConfirmDialog from '../src/components/ConfirmDialog.vue'
 import HistoryAdventureCover from '../src/components/HistoryAdventureCover.vue'
 import GoogleTranslateLangBar from '../src/components/GoogleTranslateLangBar.vue'
+import FlashLeaderboardModal from '../src/components/FlashLeaderboardModal.vue'
 import * as googleTranslate from '../src/lib/googleTranslateBrowser'
 import OnboardView from '../src/views/OnboardView.vue'
 import CompteView from '../src/views/CompteView.vue'
@@ -62,6 +63,58 @@ describe('shared components', () => {
     expect(wrapper.text()).toContain('🏛️')
     expect(wrapper.find('img').exists()).toBe(false)
     expect(wrapper.find('.sr-only').text()).toBe('Antiquité')
+  })
+})
+
+describe('classement Flashcards', () => {
+  beforeEach(() => { vi.mocked(api).mockReset() })
+
+  it('charge le journalier puis le global et ferme au clavier', async () => {
+    vi.mocked(api).mockResolvedValueOnce({ leaderboard: [{ pseudo: 'Atlas', xp: 20 }] })
+      .mockResolvedValueOnce({ leaderboard: [{ pseudo: 'Boreal', xp: 120 }] })
+    const wrapper = mount(FlashLeaderboardModal, { props: { open: true }, global: { stubs: { teleport: true } } })
+    try {
+      expect(wrapper.text()).toContain('Chargement du classement')
+      await flushPromises()
+      expect(api).toHaveBeenCalledWith('/flash/leaderboard', expect.objectContaining({ query: { scope: 'daily' } }))
+      expect(wrapper.get('.ranking').text()).toContain('Atlas')
+      await wrapper.findAll('.segmented button')[1]!.trigger('click')
+      await flushPromises()
+      expect(api).toHaveBeenLastCalledWith('/flash/leaderboard', expect.objectContaining({ query: { scope: 'global' } }))
+      expect(wrapper.get('.ranking').text()).toContain('120 XP')
+      expect(wrapper.text()).not.toContain('Atlas')
+      await wrapper.get('[role="dialog"]').trigger('keydown', { key: 'Escape' })
+      expect(wrapper.emitted('update:open')).toEqual([[false]])
+    } finally { wrapper.unmount() }
+  })
+
+  it('permet de reessayer apres une erreur et affiche un classement vide', async () => {
+    vi.mocked(api).mockRejectedValueOnce(new Error('Connexion interrompue'))
+      .mockResolvedValueOnce({ leaderboard: [] })
+    const wrapper = mount(FlashLeaderboardModal, { props: { open: true }, global: { stubs: { teleport: true } } })
+    try {
+      await flushPromises()
+      expect(wrapper.get('[role="alert"]').text()).toContain('Connexion interrompue')
+      await wrapper.get('.modal-body .btn').trigger('click')
+      await flushPromises()
+      expect(wrapper.text()).toContain('Aucun score pour le moment')
+      expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    } finally { wrapper.unmount() }
+  })
+
+  it('ignore une reponse journaliere tardive apres le passage au global', async () => {
+    let finishDaily!: (value: unknown) => void
+    vi.mocked(api).mockReturnValueOnce(new Promise(resolve => { finishDaily = resolve }))
+      .mockResolvedValueOnce({ leaderboard: [{ pseudo: 'Global', xp: 100 }] })
+    const wrapper = mount(FlashLeaderboardModal, { props: { open: true }, global: { stubs: { teleport: true } } })
+    try {
+      await wrapper.findAll('.segmented button')[1]!.trigger('click')
+      await flushPromises()
+      finishDaily({ leaderboard: [{ pseudo: 'AncienResultat', xp: 10 }] })
+      await flushPromises()
+      expect(wrapper.get('.ranking').text()).toContain('Global')
+      expect(wrapper.text()).not.toContain('AncienResultat')
+    } finally { wrapper.unmount() }
   })
 })
 

@@ -88,6 +88,7 @@ function applySync(data: SyncPayload) {
     result.value = state.reveal
     pickedId.value = state.reveal.yourChoiceId || pickedId.value
     flashXp.value = state.reveal.flashXpTotal
+    if (app.player) app.player.flashXpTotal = state.reveal.flashXpTotal
     flashStreak.value = state.reveal.flashStreak
     flipped.value = true
   } else if (state.phase === 'answering' && (state.card?.id !== previousCard || previousPhase === 'reveal' || previousPhase === 'lobby')) {
@@ -196,6 +197,7 @@ async function choose(choiceId: string) {
     if (data.leaderboard) leaderboard.value = data.leaderboard
     if (data.correct) sessionCorrect.value += 1
     flashXp.value = data.flashXpTotal
+    if (app.player) app.player.flashXpTotal = data.flashXpTotal
     flashStreak.value = data.flashStreak
     flipped.value = true
   } catch (err) {

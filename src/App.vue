@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-import { BookOpen, ChevronDown, Home, Layers, LayoutGrid, MapPinned, RefreshCw, Sparkles, SquarePen, Swords, UserRound, Users } from 'lucide-vue-next'
+import { BookOpen, ChevronDown, Home, Layers, LayoutGrid, MapPinned, RefreshCw, Sparkles, SquarePen, Swords, Trophy, UserRound, Users } from 'lucide-vue-next'
 import { app, isRegistered, refreshApp } from '$lib/appStore'
 import { asset } from '$lib/appUrl'
 import { initMatomo, trackPageView } from '$lib/matomo'
 import GoogleTranslateLangBar from './components/GoogleTranslateLangBar.vue'
+import FlashLeaderboardModal from './components/FlashLeaderboardModal.vue'
 import {
   fixGoogleTranslateScrollLayout,
   installGoogleTranslateFloatUiSuppression,
@@ -36,13 +37,14 @@ const flashGame = computed(() => route.meta.game === 'flash')
 const shellClass = computed(() => catalog.value ? 'catalog' : flashGame.value ? 'flash' : 'geopinpoint')
 const currentGame = computed(() => games.find(game => game.to !== '/' && (route.path === game.to || route.path.startsWith(`${game.to}/`))) ?? games[1]!)
 const gameMenuOpen = ref(false)
+const flashLeaderboardOpen = ref(false)
 const gameMenuRoot = ref<HTMLElement>()
 
 const immersive = computed(() => Boolean(route.meta.immersive))
 const flowing = computed(() => Boolean(route.meta.flowing))
 const registered = computed(() => isRegistered())
 const pseudo = computed(() => (registered.value ? app.player?.pseudo ?? '' : 'Invité'))
-const xp = computed(() => app.player?.xpTotal ?? 0)
+const xp = computed(() => flashGame.value ? app.player?.flashXpTotal ?? 0 : app.player?.xpTotal ?? 0)
 const initials = computed(() => (registered.value ? pseudo.value.slice(0, 2).toUpperCase() : '?'))
 
 /** Lien actif aussi pour les sous-routes (`/geobattle/:id` active « Geobattle »). */
@@ -52,7 +54,7 @@ function isActive(to: string): boolean {
 }
 
 watch([immersive, flowing, catalog], ([fullScreen, scrollable, showcase]) => document.documentElement.classList.toggle('gp-quiz-viewport-lock', fullScreen && !scrollable && !showcase), { immediate: true })
-watch(() => route.fullPath, () => { gameMenuOpen.value = false })
+watch(() => route.fullPath, () => { gameMenuOpen.value = false; flashLeaderboardOpen.value = false })
 
 let stopFloatUi: (() => void) | null = null
 const resetTimers: number[] = []
@@ -179,6 +181,7 @@ onBeforeUnmount(() => {
         <GoogleTranslateLangBar compact />
       </div>
       <div class="topbar-right">
+        <button v-if="flashGame" type="button" class="icon-button flash-ranking-button" aria-label="Ouvrir le classement Flashcards" title="Classement Flashcards" @click="flashLeaderboardOpen = true"><Trophy :size="18" /></button>
         <span class="xp-pill" title="Expérience cumulée"><Sparkles :size="14" aria-hidden="true" /> {{ xp.toLocaleString('fr-FR') }} XP</span>
         <RouterLink v-if="!registered" to="/onboard?mode=login" class="btn btn-primary btn-sm">Se connecter</RouterLink>
         <RouterLink v-else to="/compte" class="avatar" :title="pseudo" :aria-label="`Compte de ${pseudo}`">{{ initials }}</RouterLink>
@@ -204,6 +207,8 @@ onBeforeUnmount(() => {
       <RouterLink to="/privacy">Confidentialité</RouterLink>
     </footer>
   </div>
+
+  <FlashLeaderboardModal v-if="flashGame" v-model:open="flashLeaderboardOpen" />
 
   <nav v-if="!catalog && !flashGame" class="mobile-nav" aria-label="Navigation mobile">
     <RouterLink v-for="item in mobileNav" :key="item.to" :to="item.to" :class="{ active: isActive(item.to) }">
