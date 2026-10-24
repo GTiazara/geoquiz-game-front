@@ -5,6 +5,7 @@ import { api } from '$lib/api'
 import { app, isRegistered } from '$lib/appStore'
 import { asset } from '$lib/appUrl'
 import type { FlashTheme } from '$lib/types'
+import GoogleTranslateLangBar from '../components/GoogleTranslateLangBar.vue'
 
 const flashCount = ref<number | null>(null)
 
@@ -27,6 +28,7 @@ onMounted(async () => {
         <span>Geo<span class="brand-accent">Pinpoint</span></span>
       </RouterLink>
       <div class="site-actions">
+        <GoogleTranslateLangBar compact />
         <nav class="site-nav" aria-label="Site">
           <RouterLink to="/a-propos">À propos</RouterLink>
           <RouterLink to="/privacy">Confidentialité</RouterLink>
@@ -95,9 +97,9 @@ onMounted(async () => {
   .site-header .brand { font-size: 21px; }
   .site-nav { display: flex; align-items: center; gap: 16px; }
   .site-nav a { color: var(--muted); font-size: 14px; font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
-  .hero { padding: 48px 28px 12px; max-width: 820px; }
+  .hero { width: 100%; padding: 48px 28px 12px; max-width: 980px; margin-inline: auto; }
   .hero p { font-size: 18px; max-width: 640px; }
-  .catalog { gap: 16px; padding: 28px; max-width: 980px; }
+  .catalog { width: 100%; gap: 16px; padding: 28px; max-width: 980px; margin-inline: auto; }
   .game { grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 22px; }
   .game .btn { grid-column: auto; width: auto; }
   .game-mark { width: 56px; height: 56px; border-radius: 16px; }
