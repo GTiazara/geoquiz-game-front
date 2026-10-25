@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
     </main>
 
     <footer v-if="!catalog && !immersive" class="page-footer">
-      <span>© GeoPinpoint</span>
+      <span>© GeoPinpoint v2.0.0</span>
       <RouterLink to="/a-propos">À propos</RouterLink>
       <RouterLink to="/privacy">Confidentialité</RouterLink>
     </footer>
