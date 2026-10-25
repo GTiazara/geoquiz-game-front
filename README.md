@@ -35,7 +35,7 @@ En développement, Vite proxifie `/api` vers `http://localhost:3000` (modifiable
 | `VITE_API_BASE_URL` | `/api` | URL de l’API. En production séparée : `https://api.example.com/api`. |
 | `VITE_BASE_PATH` | `/` | Chemin de publication (ex. `/geoquiz-game-front/` sur GitHub Pages). |
 | `VITE_ROUTER_MODE` | `history` | `hash` pour les hébergements statiques sans réécriture d’URL (GitHub Pages). |
-| `VITE_MATOMO_URL` / `VITE_MATOMO_SITE_ID` | — | Mesure d’audience Matomo (désactivée si absentes). |
+| `VITE_MATOMO_URL` / `VITE_MATOMO_SITE_ID` | — en local ; `https://matomo.gtiazara.fr/` / `5` dans le workflow Pages | Mesure d’audience Matomo (désactivée si absentes hors workflow Pages). |
 | `API_PROXY_TARGET` | `http://localhost:3000` | Cible du proxy `/api` en dev uniquement. |
 
 ## Déployer sur GitHub Pages
@@ -43,7 +43,7 @@ En développement, Vite proxifie `/api` vers `http://localhost:3000` (modifiable
 Le workflow [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) se lance à chaque push sur `main` (ou manuellement) :
 
 1. **Settings → Pages → Source : GitHub Actions**.
-2. **Settings → Secrets and variables → Actions → Variables** : créer `VITE_API_BASE_URL` = URL HTTPS publique de l’API se terminant par `/api` (ex. `https://geopinpoint-api.example.com/api`). Optionnel : `VITE_MATOMO_URL`, `VITE_MATOMO_SITE_ID`.
+2. **Settings → Secrets and variables → Actions → Variables** : créer `VITE_API_BASE_URL` = URL HTTPS publique de l’API se terminant par `/api` (ex. `https://geopinpoint-api.example.com/api`). Matomo est activé par défaut sur `https://matomo.gtiazara.fr/`, site `5` ; les variables optionnelles `VITE_MATOMO_URL` et `VITE_MATOMO_SITE_ID` permettent de remplacer ces valeurs.
 3. Côté backend, autoriser l’origine Pages et fixer l’URL publique des liens de partage :
    ```env
    CORS_ORIGIN=https://gtiazara.github.io
