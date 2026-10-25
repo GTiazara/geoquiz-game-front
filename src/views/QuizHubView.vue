@@ -41,7 +41,7 @@ onMounted(async () => {
     <section class="hero">
       <span class="eyebrow">Catalogue</span>
       <h1>Choisis un quiz</h1>
-      <p>Chaque jeu s’ouvre dans son propre espace. GeoPinpoint reste le quiz sur carte, avec ses menus, ses thèmes et ses duels.</p>
+      <!-- <p>Chaque jeu s’ouvre dans son propre espace. GeoPinpoint reste le quiz sur carte, avec ses menus, ses thèmes et ses duels.</p> -->
     </section>
 
     <section class="catalog" aria-label="Jeux">
