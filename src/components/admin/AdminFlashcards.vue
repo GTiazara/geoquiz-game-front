@@ -73,6 +73,22 @@ const deckId = ref('')
 const themeForm = ref<ThemeForm | null>(null)
 const deckForm = ref<DeckForm | null>(null)
 const cardForm = ref<CardForm | null>(null)
+function youtubeVideoId(value: string): string {
+  try {
+    const url = new URL(value)
+    if (url.hostname === 'youtu.be') return url.pathname.slice(1).split('/')[0] ?? ''
+    if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(url.hostname)) {
+      return url.searchParams.get('v') || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1] || ''
+    }
+  } catch { /* URL vide ou en cours de saisie. */ }
+  return ''
+}
+const videoEmbedUrl = computed(() => {
+  const value = cardForm.value?.kind === 'video' ? cardForm.value.url.trim() : ''
+  if (!value) return ''
+  const id = youtubeVideoId(value)
+  return id ? `https://www.youtube-nocookie.com/embed/${id}` : ''
+})
 const themes = computed(() => data.value.flashThemes)
 watch(themes, (list) => {
   if (!list.some(theme => theme.id === importThemeId.value)) importThemeId.value = list[0]?.id ?? ''
@@ -274,7 +290,7 @@ async function saveCard() {
     </tbody></table></div>
     <h3>Cartes</h3>
     <div class="table-wrap"><table class="table"><thead><tr><th>Recto</th><th>Verso</th><th>État</th><th>Actions</th></tr></thead><tbody>
-      <tr v-for="card in cards" :key="card.id"><td>{{ card.prompt.kind === 'text' ? card.prompt.text : card.prompt.kind }}</td><td class="clamp">{{ card.backText }}</td><td><span class="badge" :class="card.approved ? 'success' : 'warn'">{{ card.approved ? 'Publiée' : 'Brouillon' }}</span></td><td><div class="actions"><button type="button" class="btn btn-sm btn-secondary" @click="openCard(card)">Modifier</button><button type="button" class="btn btn-sm btn-danger-ghost" :disabled="busy" @click="ask('Supprimer cette carte ?', () => mutate('flash/cards/delete', { cardId: card.id }, 'Carte supprimée.'))">Supprimer</button></div></td></tr>
+      <tr v-for="card in cards" :key="card.id"><td><div class="card-front-cell"><img v-if="card.prompt.kind === 'image'" class="card-media-thumb" :src="card.prompt.url" :alt="card.prompt.alt || 'Image de la flashcard'" loading="lazy" /><img v-else-if="card.prompt.kind === 'video' && youtubeVideoId(card.prompt.url)" class="card-media-thumb" :src="`https://img.youtube.com/vi/${youtubeVideoId(card.prompt.url)}/hqdefault.jpg`" alt="Miniature de la vidéo" loading="lazy" /><video v-else-if="card.prompt.kind === 'video'" class="card-media-thumb" :src="card.prompt.url" muted preload="metadata" aria-label="Vidéo de la flashcard" /><span>{{ card.prompt.kind === 'text' ? card.prompt.text : card.prompt.kind }}</span></div></td><td class="clamp">{{ card.backText }}</td><td><span class="badge" :class="card.approved ? 'success' : 'warn'">{{ card.approved ? 'Publiée' : 'Brouillon' }}</span></td><td><div class="actions"><button type="button" class="btn btn-sm btn-secondary" @click="openCard(card)">Modifier</button><button type="button" class="btn btn-sm btn-danger-ghost" :disabled="busy" @click="ask('Supprimer cette carte ?', () => mutate('flash/cards/delete', { cardId: card.id }, 'Carte supprimée.'))">Supprimer</button></div></td></tr>
     </tbody></table></div>
     <p v-if="!cards.length" class="subtle">Aucune carte pour ce filtre.</p>
   </section>
@@ -306,6 +322,15 @@ async function saveCard() {
     <template v-else>
       <label class="field"><span class="field-label">{{ cardForm.kind === 'video' ? 'URL https ou YouTube' : 'URL https' }}</span><input v-model="cardForm.url" type="url" required placeholder="https://…" /></label>
       <label v-if="cardForm.kind === 'image'" class="field"><span class="field-label">Texte alternatif</span><input v-model="cardForm.alt" /></label>
+      <div v-if="cardForm.kind === 'image' && cardForm.url.trim()" class="media-preview">
+        <span class="field-label">Aperçu</span>
+        <img :src="cardForm.url.trim()" :alt="cardForm.alt || 'Aperçu de l’image de la flashcard'" />
+      </div>
+      <div v-if="cardForm.kind === 'video' && cardForm.url.trim()" class="media-preview">
+        <span class="field-label">Aperçu</span>
+        <iframe v-if="videoEmbedUrl" :src="videoEmbedUrl" title="Aperçu de la vidéo de la flashcard" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen />
+        <video v-else controls preload="metadata" :src="cardForm.url.trim()" aria-label="Aperçu de la vidéo de la flashcard" />
+      </div>
     </template>
     <fieldset class="stack-sm" style="border:0;padding:0;margin:0"><legend class="field-label">Quatre réponses, une seule juste</legend>
       <label v-for="(_, choiceIndex) in cardForm.choices" :key="choiceIndex" class="choice-row"><input v-model="cardForm.correct" type="radio" :value="choiceIndex" :aria-label="`Bonne réponse ${choiceIndex + 1}`" /><input v-model="cardForm.choices[choiceIndex]" required :placeholder="`Réponse ${choiceIndex + 1}`" /></label>
@@ -316,7 +341,11 @@ async function saveCard() {
 </template>
 
 <style scoped>
+.card-front-cell { display: flex; align-items: center; gap: 10px; min-width: 150px; }
+.card-media-thumb { display: block; flex: 0 0 80px; width: 80px; height: 52px; object-fit: cover; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-2); }
 .choice-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
+.media-preview { display: grid; gap: 6px; width: min(100%, 320px); }
+.media-preview img, .media-preview video, .media-preview iframe { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .import-panel { padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
 .import-theme { flex: 1; min-width: min(100%, 220px); }
 .import-file { position: relative; min-height: 44px; overflow: hidden; }
